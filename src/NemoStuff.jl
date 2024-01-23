@@ -46,10 +46,6 @@ base_ring(::Vector{Int}) = Int
 #
 ################################################################################
 
-function zero_matrix(::Type{MatElem}, R::Ring, n::Int)
-    return zero_matrix(R, n)
-end
-
 function zero_matrix(::Type{MatElem}, R::Ring, n::Int, m::Int)
     return zero_matrix(R, n, m)
 end
@@ -57,8 +53,6 @@ end
 function identity_matrix(::Type{MatElem}, R::Ring, n::Int)
     return identity_matrix(R, n)
 end
-
-dense_matrix_type(::Type{T}) where {T} = Generic.MatSpaceElem{T}
 
 ################################################################################
 #
@@ -176,129 +170,6 @@ function sub(M::Generic.Mat, rows::AbstractUnitRange{Int}, cols::AbstractUnitRan
     return z
 end
 
-################################################################################
-#
-#  Concatenation of matrices
-#
-################################################################################
-
-@doc raw"""
-    vcat(A::Vector{Mat}) -> Mat
-
-Forms a big matrix by vertically concatenating the matrices in $A$.
-All component matrices need to have the same number of columns.
-"""
-function Base.vcat(A::Vector{T}) where {S<:RingElem,T<:MatElem{S}}
-    if any(x -> ncols(x) != ncols(A[1]), A)
-        error("Matrices must have same number of columns")
-    end
-    M = zero_matrix(base_ring(A[1]), sum(nrows, A), ncols(A[1]))
-    s = 0
-    for i = A
-        for j = 1:nrows(i)
-            for k = 1:ncols(i)
-                M[s+j, k] = i[j, k]
-            end
-        end
-        s += nrows(i)
-    end
-    return M
-end
-
-function Base.hcat(A::Vector{T}) where {S<:RingElem,T<:MatElem{S}}
-    if any(x -> nrows(x) != nrows(A[1]), A)
-        error("Matrices must have same number of rows")
-    end
-    M = zero_matrix(base_ring(A[1]), nrows(A[1]), sum(ncols, A))
-    s = 0
-    for i = A
-        for j = 1:ncols(i)
-            for k = 1:nrows(i)
-                M[k, s+j] = i[k, j]
-            end
-        end
-        s += ncols(i)
-    end
-    return M
-end
-
-function Base.hcat(A::MatElem...)
-    r = nrows(A[1])
-    c = ncols(A[1])
-    R = base_ring(A[1])
-    for i = 2:length(A)
-        @assert nrows(A[i]) == r
-        @assert base_ring(A[i]) == R
-        c += ncols(A[i])
-    end
-    X = zero_matrix(R, r, c)
-    o = 1
-    for i = 1:length(A)
-        for j = 1:ncols(A[i])
-            X[:, o] = A[i][:, j]
-            o += 1
-        end
-    end
-    return X
-end
-
-function Base.cat(A::MatElem...; dims)
-    @assert dims == (1, 2) || isa(dims, Int)
-
-    if isa(dims, Int)
-        if dims == 1
-            return hcat(A...)
-        elseif dims == 2
-            return vcat(A...)
-        else
-            error("dims must be 1, 2, or (1,2)")
-        end
-    end
-
-    local X
-    for i = 1:length(A)
-        if i == 1
-            X = hcat(A[1], zero_matrix(base_ring(A[1]), nrows(A[1]), sum(Int[ncols(A[j]) for j = 2:length(A)])))
-        else
-            X = vcat(X, hcat(zero_matrix(base_ring(A[1]), nrows(A[i]), sum(ncols(A[j]) for j = 1:i-1)), A[i], zero_matrix(base_ring(A[1]), nrows(A[i]), sum(Int[ncols(A[j]) for j = i+1:length(A)]))))
-        end
-    end
-    return X
-end
-
-#= seems to be in AA now
-function Base.hvcat(rows::Tuple{Vararg{Int}}, A::MatElem...)
-  B = hcat([A[i] for i=1:rows[1]]...)
-  o = rows[1]
-  for j=2:length(rows)
-    C = hcat([A[i+o] for i=1:rows[j]]...)
-    o += rows[j]
-    B = vcat(B, C)
-  end
-  return B
-end
-=#
-
-function Base.vcat(A::MatElem...)
-    r = nrows(A[1])
-    c = ncols(A[1])
-    R = base_ring(A[1])
-    for i = 2:length(A)
-        @assert ncols(A[i]) == c
-        @assert base_ring(A[i]) == R
-        r += nrows(A[i])
-    end
-    X = zero_matrix(R, r, c)
-    o = 1
-    for i = 1:length(A)
-        for j = 1:nrows(A[i])
-            X[o, :] = A[i][j, :]
-            o += 1
-        end
-    end
-    return X
-end
-
 gens(L::SimpleNumField{T}) where {T} = [gen(L)]
 
 function gen(L::SimpleNumField{T}, i::Int) where {T}
@@ -316,7 +187,7 @@ function Base.getindex(L::SimpleNumField{T}, i::Int) where {T}
     end
 end
 
-ngens(L::SimpleNumField{T}) where {T} = 1
+number_of_generators(L::SimpleNumField{T}) where {T} = 1
 
 is_unit(a::NumFieldElem) = !iszero(a)
 
@@ -391,7 +262,7 @@ end
 #       lift(FracField, Series)
 #       (to be in line with lift(ZZ, padic) and lift(QQ, padic)
 #TODO: some of this would only work for Abs, not Rel, however, this should be fine here
-function map_coefficients(f, a::RelPowerSeriesRingElem; parent::SeriesRing)
+function map_coefficients(f::T, a::RelPowerSeriesRingElem; parent::SeriesRing) where T
     c = typeof(f(coeff(a, 0)))[]
     for i = 0:pol_length(a)-1
         push!(c, f(polcoeff(a, i)))
@@ -440,23 +311,23 @@ function Base.lcm(a::T, b::T) where {T<:SeriesElem}
     return gen(parent(a))^max(valuation(a), valuation(b))
 end
 
-function gen(R::Union{Generic.ResidueRing{T},Generic.ResidueField{T}}) where {T<:PolyRingElem}
+function gen(R::Union{Generic.EuclideanRingResidueRing{T},Generic.EuclideanRingResidueField{T}}) where {T<:PolyRingElem}
     return R(gen(base_ring(R)))
 end
 
-function characteristic(R::Union{Generic.ResidueRing{T},Generic.ResidueField{T}}) where {T<:PolyRingElem}
+function characteristic(R::Union{Generic.EuclideanRingResidueRing{T},Generic.EuclideanRingResidueField{T}}) where {T<:PolyRingElem}
     return characteristic(base_ring(base_ring(R)))
 end
 
-function size(R::Union{Generic.ResidueRing{T},Generic.ResidueField{T}}) where {T<:ResElem}
+function size(R::Union{Generic.EuclideanRingResidueRing{T},Generic.EuclideanRingResidueField{T}}) where {T<:ResElem}
     return size(base_ring(base_ring(R)))^degree(modulus(R))
 end
 
-function size(R::Union{Generic.ResidueRing{T},Generic.ResidueField{T}}) where {T<:PolyRingElem}
+function size(R::Union{Generic.EuclideanRingResidueRing{T},Generic.EuclideanRingResidueField{T}}) where {T<:PolyRingElem}
     return size(base_ring(base_ring(R)))^degree(R.modulus)
 end
 
-function rand(R::Union{Generic.ResidueRing{T},Generic.ResidueField{T}}) where {T<:PolyRingElem}
+function rand(R::Union{Generic.EuclideanRingResidueRing{T},Generic.EuclideanRingResidueField{T}}) where {T<:PolyRingElem}
     r = rand(base_ring(base_ring(R)))
     g = gen(R)
     for i = 1:degree(R.modulus)
@@ -465,7 +336,7 @@ function rand(R::Union{Generic.ResidueRing{T},Generic.ResidueField{T}}) where {T
     return r
 end
 
-function gens(R::Union{Generic.ResidueRing{T},Generic.ResidueField{T}}) where {T<:PolyRingElem} ## probably needs more cases
+function gens(R::Union{Generic.EuclideanRingResidueRing{T},Generic.EuclideanRingResidueField{T}}) where {T<:PolyRingElem} ## probably needs more cases
     ## as the other residue functions
     g = gen(R)
     r = Vector{typeof(g)}()

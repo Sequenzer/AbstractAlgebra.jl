@@ -23,7 +23,9 @@ coefficient_ring(R::LaurentMPolyWrapRing) = coefficient_ring(R.mpolyring)
 
 symbols(R::LaurentMPolyWrapRing) = symbols(R.mpolyring)
 
-nvars(R::LaurentMPolyWrapRing) = nvars(R.mpolyring)
+number_of_variables(R::LaurentMPolyWrapRing) = number_of_variables(R.mpolyring)
+
+number_of_generators(R::LaurentMPolyWrapRing) = number_of_variables(R.mpolyring)
 
 characteristic(R::LaurentMPolyWrapRing) = characteristic(R.mpolyring)
 
@@ -605,7 +607,7 @@ end
 #
 ################################################################################
 
-function AbstractAlgebra._map(g, p::LaurentMPolyWrap, R::LaurentMPolyWrapRing)
+function AbstractAlgebra._map(g::T, p::LaurentMPolyWrap, R::LaurentMPolyWrapRing) where T
    return LaurentMPolyWrap(R, AbstractAlgebra._map(g, p.mpoly, R.mpolyring),
                               p.mindegs)
 end
@@ -619,20 +621,20 @@ function change_base_ring(
    return AbstractAlgebra._map(R, p, parent)
 end
 
-function map_coefficients(g, p::LaurentMPolyWrap; cached::Bool = true,
+function map_coefficients(g::T, p::LaurentMPolyWrap; cached::Bool = true,
                        parent::LaurentMPolyWrapRing = LaurentMPolyWrapRing(
                         AbstractAlgebra._change_mpoly_ring(AbstractAlgebra.parent(g(zero(base_ring(p.mpoly)))), AbstractAlgebra.parent(p.mpoly), cached),
-                            cached))
+                            cached)) where T
    return AbstractAlgebra._map(g, p, parent)
 end
 
 ###############################################################################
 #
-#   LaurentPolynomialRing constructor
+#   laurent_polynomial_ring constructor
 #
 ###############################################################################
 
-function LaurentPolynomialRing(R::AbstractAlgebra.Ring, s::Vector{Symbol}; cached::Bool = true)
+function laurent_polynomial_ring(R::AbstractAlgebra.Ring, s::Vector{Symbol}; cached::Bool = true)
    P, x = AbstractAlgebra.polynomial_ring(R, s, cached = cached)
    R = LaurentMPolyWrapRing(P, cached)
    R, map(p -> LaurentMPolyWrap(R, p), x)

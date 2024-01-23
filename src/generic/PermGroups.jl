@@ -93,8 +93,9 @@ function parity(g::Perm{T}) where T
    to_visit = trues(size(g.d))
    parity = false
    k = 1
-   @inbounds while any(to_visit)
+   @inbounds while true
       k = findnext(to_visit, k)
+      k !== nothing || break
       to_visit[k] = false
       next = g[k]
       while next != k
@@ -168,7 +169,7 @@ Base.lastindex(cd::CycleDec) = cd.n
 Base.eltype(::Type{CycleDec{T}}) where T = Vector{T}
 
 function Base.show(io::IO, cd::CycleDec)
-   a = [join(c, ",") for c in cd]
+   a = [join(c, ",") for c in cd]::Vector{String}
    print(io, "Cycle Decomposition: ("*join(a, ")(")*")")
 end
 
@@ -217,8 +218,9 @@ function cycledec(v::Vector{T}) where T<:Integer
    k = 1
    i = 1
 
-   while any(to_visit)
+   while true
       k = findnext(to_visit, k)
+      k !== nothing || break
       to_visit[k] = false
       next = v[k]
 
@@ -331,7 +333,7 @@ function Base.show(io::IO, g::Perm)
    end
 end
 
-function _print_perm(io::IO, p::Perm, width::Integer=last(displaysize(io)))
+function _print_perm(io::IO, p::Perm, width::Int=last(displaysize(io)))
    @assert width > 3
    if isone(p)
       return print(io, "()")
@@ -339,7 +341,7 @@ function _print_perm(io::IO, p::Perm, width::Integer=last(displaysize(io)))
       cum_length = 0
       for c in cycles(p)
          length(c) == 1 && continue
-         cyc = join(c, ",")
+         cyc = join(c, ",")::String
 
          if width - cum_length >= length(cyc)+2
             print(io, "(", cyc, ")")
@@ -492,7 +494,7 @@ function power_by_squaring(g::Perm{I}, n::Integer) where {I}
    if n < 0
       return inv(g)^-n
    elseif n == 0
-      return Perm(T(length(g.d)))
+      return Perm(I(length(g.d)))
    elseif n == 1
       return deepcopy(g)
    elseif n == 2
@@ -644,6 +646,8 @@ end
 
 Base.eltype(::Type{SymmetricGroup{T}}) where T = Perm{T}
 
+elem_type(::Type{SymmetricGroup{T}}) where T = Perm{T}
+
 Base.length(G::SymmetricGroup) = order(Int, G)
 
 ###############################################################################
@@ -652,7 +656,7 @@ Base.length(G::SymmetricGroup) = order(Int, G)
 #
 ###############################################################################
 
-function gens(G::SymmetricGroup{I}) where {I}
+function gens(G::SymmetricGroup)
    G.n == 1 && return eltype(G)[]
    if G.n == 2
       a = one(G)
@@ -664,6 +668,12 @@ function gens(G::SymmetricGroup{I}) where {I}
    b[1], b[2] = 2, 1
    return [a, b]
 end
+
+gen(G::SymmetricGroup, i::Int) = gens(G)[i]
+
+number_of_generators(G::SymmetricGroup) = G.n == 1 ? 0 : G.n == 2 ? 1 : 2
+
+is_finite(G::SymmetricGroup) = true
 
 order(::Type{T}, G::SymmetricGroup) where {T} = convert(T, factorial(T(G.n)))
 

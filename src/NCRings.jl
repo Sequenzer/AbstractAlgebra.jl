@@ -4,8 +4,6 @@
 #
 ###############################################################################
 
-include("Rings.jl")
-
 ################################################################################
 #
 #   Promotion system
@@ -120,11 +118,11 @@ end
 
 #Base.:/(x::ModuleElem, y::RingElement) = divexact_right(x, y; check=true)
 Base.:/(x::NCRingElem, y::NCRingElement) = divexact_right(x, y; check=true)
-Base.:/(x::Union{Integer, Rational, AbstractFloat}, y::NCRingElem) = divexact_right(x, y; check=true)
+Base.:/(x::NCRingElem, y::Union{Integer, Rational, AbstractFloat}) = divexact_right(x, y; check=true)
 
 #Base.:\(y::RingElement, x::ModuleElem) = divexact_left(x, y; check=true)
 Base.:\(y::NCRingElement, x::NCRingElem) = divexact_left(x, y; check=true)
-Base.:\(y::NCRingElem, x::Union{Integer, Rational, AbstractFloat}) = divexact_left(x, y; check=true)
+Base.:\(y::Union{Integer, Rational, AbstractFloat}, x::NCRingElem) = divexact_left(x, y; check=true)
 
 Base.literal_pow(::typeof(^), x::NCRingElem, ::Val{p}) where {p} = x^p
 

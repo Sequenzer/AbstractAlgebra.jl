@@ -4,8 +4,6 @@
 #
 ###############################################################################
 
-export RationalFunctionField, norm
-
 ###############################################################################
 #
 #   Data type and parent object methods
@@ -20,11 +18,9 @@ base_ring_type(::Type{RationalFunctionField{T, U}}) where {T <: FieldElement, U 
 
 base_ring(a::RationalFunctionField{T, U}) where {T <: FieldElement, U <: Union{PolyRingElem, MPolyRingElem}} = a.base_ring::parent_type(T)
 
-base_ring(a::RationalFunctionFieldElem) = base_ring(parent(a))
-
 parent(a::RationalFunctionFieldElem) = a.parent
 
-data(x::RationalFunctionFieldElem{T, U}) where {T <: FieldElement, U <: Union{PolyRingElem, MPolyRingElem}} = x.d::Union{Frac{U}}
+data(x::RationalFunctionFieldElem{T, U}) where {T <: FieldElement, U <: Union{PolyRingElem, MPolyRingElem}} = x.d::FracFieldElem{U}
 
 function fraction_field(a::RationalFunctionField{T, U}) where {T <: FieldElement, U <: Union{PolyRingElem, MPolyRingElem}}
    return a.fraction_field::Union{FracField{U}}
@@ -113,7 +109,11 @@ is_unit(a::RationalFunctionFieldElem) = is_unit(data(a))
 
 gen(R::RationalFunctionField) = R(gen(base_ring(R.fraction_field)))
 
-gens(R::RationalFunctionField) = [R(g) for g in gens(base_ring(R.fraction_field))]
+gen(R::RationalFunctionField, i::Int) = R(gen(base_ring(R.fraction_field), i))
+
+gens(R::RationalFunctionField) = R.(gens(base_ring(R.fraction_field)))
+
+number_of_generators(R::RationalFunctionField) = number_of_generators(base_ring(R.fraction_field))
 
 function deepcopy_internal(a::RationalFunctionFieldElem, dict::IdDict)
    R = parent(a)
@@ -528,7 +528,7 @@ promote_rule(::Type{RationalFunctionFieldElem{T, U}}, ::Type{RationalFunctionFie
 promote_rule(::Type{RationalFunctionFieldElem{T, U}}, ::Type{RationalFunctionFieldElem{T, U}}) where {T <: FieldElem, U <: Union{PolyRingElem, MPolyRingElem}} = RationalFunctionFieldElem{T, U}
 
 function promote_rule(::Type{RationalFunctionFieldElem{T, U}}, ::Type{V}) where {T <: FieldElement, U <: Union{PolyRingElem, MPolyRingElem}, V <: RingElem}
-   promote_rule(Frac{U}, V) === Frac{U} ? RationalFunctionFieldElem{T, U} : Union{}
+   promote_rule(FracFieldElem{U}, V) === FracFieldElem{U} ? RationalFunctionFieldElem{T, U} : Union{}
 end
 
 ###############################################################################
@@ -544,7 +544,7 @@ function (a::RationalFunctionField{T, U})() where {T <: FieldElement, U <: Union
    return z
 end
 
-function (a::RationalFunctionField{T, U})(b::Frac{U}) where {T <: FieldElement, U <: Union{PolyRingElem{T}, MPolyRingElem{T}}}
+function (a::RationalFunctionField{T, U})(b::FracFieldElem{U}) where {T <: FieldElement, U <: Union{PolyRingElem{T}, MPolyRingElem{T}}}
    K = fraction_field(a)
    parent(b) != K && error("Unable to coerce rational function")
    z = RationalFunctionFieldElem{T, U}(b)
@@ -559,7 +559,7 @@ function (a::RationalFunctionField{T, U})(n::U, d::U) where {T <: FieldElement, 
       n = divexact(n, g)
       d = divexact(d, g)
    end
-   r = Frac{U}(n, d)
+   r = FracFieldElem{U}(n, d)
    try
       r.parent = FracDict[R]
    catch
@@ -597,7 +597,7 @@ end
 #
 ###############################################################################
 
-function RationalFunctionField(k::Field, s::Symbol; cached::Bool=true)
+function rational_function_field(k::Field, s::Symbol; cached::Bool=true)
    T = elem_type(k)
 
    R, x = AbstractAlgebra.polynomial_ring(k, s, cached=cached)
@@ -615,7 +615,7 @@ function RationalFunctionField(k::Field, s::Symbol; cached::Bool=true)
    return par_object, t
 end
 
-function RationalFunctionField(k::Field, s::Vector{Symbol}; cached::Bool=true)
+function rational_function_field(k::Field, s::Vector{Symbol}; cached::Bool=true)
    T = elem_type(k)
 
    R, x = AbstractAlgebra.polynomial_ring(k, s, cached=cached)

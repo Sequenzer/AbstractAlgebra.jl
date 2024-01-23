@@ -1,3 +1,5 @@
+import AbstractAlgebra.PrettyPrinting
+
 @testset "Generic.ModuleHomomorphism.constructors" begin
    M = FreeModule(ZZ, 2)
 
@@ -45,6 +47,9 @@ end
          end
 
          @test k2 == M1
+
+         Q, g = quo(M, M)
+         @test all(x -> iszero(g(x)), gens(Q))
       end
    end
 
@@ -90,6 +95,9 @@ end
       T, t = sub(Q, elem_type(Q)[])
 
       @test I == T
+
+      Q, g = quo(M, M)
+      @test all(x -> iszero(g(x)), gens(Q))
    end
 
    S = AbstractAlgebra.JuliaQQ
@@ -109,7 +117,22 @@ end
       T, t = sub(Q, elem_type(Q)[])
 
       @test I == T
+
+      Q, g = quo(N, N)
+      @test all(x -> iszero(g(x)), gens(Q))
    end
+end
+
+@testset "Generic.ModuleHomomorphism.printing" begin
+  M = FreeModule(ZZ, 2)
+  f = ModuleHomomorphism(M, M, matrix(ZZ, 2, 2, [1, 2, 3, 4]))
+  str = """
+        Module homomorphism
+          from free module of rank 2 over integers
+          to free module of rank 2 over integers"""
+  @test PrettyPrinting.detailed(f) == str
+  @test PrettyPrinting.oneline(f) == "Hom: free module of rank 2 over integers -> free module of rank 2 over integers"
+  @test PrettyPrinting.supercompact(f) == "Module homomorphism"
 end
 
 @testset "Generic.ModuleIsomorphism" begin
@@ -126,7 +149,7 @@ end
 
       @test domain(f) == M
       @test codomain(f) == M
-      @test mat(f) == N
+      @test matrix(f) == N
       @test N*inverse_mat(f) == 1
 
       m = rand(M, -10:10)
@@ -136,4 +159,16 @@ end
       @test isa(image_fn(f), Function)
       @test isa(inverse_image_fn(f), Function)
    end
+end
+
+@testset "Generic.ModuleIsomorphism.printing" begin
+  M = FreeModule(ZZ, 2)
+  f = ModuleIsomorphism(M, M, matrix(ZZ, 2, 2, [1, 0, 0, 1]))
+  str = """
+        Module isomorphism
+          from free module of rank 2 over integers
+          to free module of rank 2 over integers"""
+  @test PrettyPrinting.detailed(f) == str
+  @test PrettyPrinting.oneline(f) == "Hom: free module of rank 2 over integers -> free module of rank 2 over integers"
+  @test PrettyPrinting.supercompact(f) == "Module isomorphism"
 end

@@ -14,19 +14,14 @@ using Preferences
 
 using Test # for "interface-conformance" functions
 
-import GroupsCore
-import GroupsCore: gens, ngens, order, mul!, istrivial
-
 # A list of all symbols external packages should not import from AbstractAlgebra
-import_exclude = [:import_exclude, :QQ, :ZZ,
-                  :RealField, :number_field,
+const import_exclude = [:import_exclude, :QQ, :ZZ,
+                  :RealField, :GF,
                   :AbstractAlgebra,
                   :inv, :log, :exp, :sqrt, :div, :divrem,
                   :numerator, :denominator,
                   :promote_rule,
                   :Set, :Module, :Group,
-                  # remove the following, once they land in OSCAR
-                  :allow_unicode, :with_unicode,
                  ]
 
 # If you want to add methods to functions in LinearAlgebra they should be
@@ -37,6 +32,7 @@ import LinearAlgebra: det
 import LinearAlgebra: hessenberg
 import LinearAlgebra: ishermitian
 import LinearAlgebra: issymmetric
+import LinearAlgebra: isdiag
 import LinearAlgebra: istril
 import LinearAlgebra: istriu
 import LinearAlgebra: lu
@@ -236,15 +232,21 @@ export FracField
 export FreeAssAlgebra
 export FreeAssAlgElem
 export FunctionalMap
+export Group
 export GroupElem
 export hgcd
 export Ideal
 export IdealSet
 export IdentityMap
+export InfiniteOrderError
 export is_irreducible
 export is_squarefree
 export is_perfect
 export ItemQuantity
+export LaurentMPolyRing
+export LaurentMPolyRingElem
+export LaurentPolyRing
+export LaurentPolyRingElem
 export Map
 export MatAlgebra
 export MatAlgElem
@@ -297,7 +299,20 @@ include("AliasMacro.jl")
 include("PrintHelper.jl")
 
 # alternative names for some functions from Base
-export is_empty, is_even, is_equal, is_finite, is_inf, is_integer, is_less, is_odd, is_one, is_real, is_subset, is_valid, is_zero
+export is_empty
+export is_equal
+export is_even
+export is_finite
+export is_inf
+export is_integer
+export is_less
+export is_odd
+export is_one
+export is_real
+export is_subset
+export is_valid
+export is_zero
+export number_of_digits
 
 @alias is_empty isempty
 @alias is_even iseven
@@ -312,19 +327,32 @@ export is_empty, is_even, is_equal, is_finite, is_inf, is_integer, is_less, is_o
 @alias is_subset issubset
 @alias is_valid isvalid
 @alias is_zero iszero
+@alias number_of_digits ndigits
 
-# alternative names for some functions from GroupsCore
-export is_trivial
-
-@alias is_trivial istrivial
+function order end
 
 # alternative names for some functions from LinearAlgebra
-export is_hermitian, is_symmetric, is_upper_triangular, is_lower_triangular
+# we don't use the `@alias` macro here because we provide custom
+# docstrings for these aliases
+const is_diagonal = isdiag
+const is_hermitian = ishermitian
+const is_symmetric = issymmetric
+const is_lower_triangular = istril
+const is_upper_triangular = istriu
 
-@alias is_hermitian ishermitian
-@alias is_symmetric issymmetric
-@alias is_lower_triangular istril
-@alias is_upper_triangular istriu
+# alternative names for some of our own functions
+function number_of_columns end
+function number_of_generators end
+function number_of_rows end
+function number_of_variables end
+export number_of_columns
+export number_of_generators
+export number_of_rows
+export number_of_variables
+@alias ncols number_of_columns
+@alias ngens number_of_generators
+@alias nrows number_of_rows
+@alias nvars number_of_variables
 
 ###############################################################################
 # Macros for fancy printing. to use, enable attribute storage for your struct,
@@ -593,6 +621,7 @@ include("CommonTypes.jl") # types needed by AbstractAlgebra and Generic
 include("Poly.jl")
 include("NCPoly.jl")
 include("Matrix.jl")
+include("Matrix-Strassen.jl")
 include("MatrixAlgebra.jl")
 include("AbsSeries.jl")
 include("RelSeries.jl")
@@ -623,6 +652,7 @@ include("MPoly.jl")
 include("UnivPoly.jl")
 include("FreeAssAlgebra.jl")
 include("LaurentMPoly.jl")
+include("MatrixNormalForms.jl")
 
 ###############################################################################
 #
@@ -648,6 +678,8 @@ import .Generic: dense_matrix_type
 import .Generic: dim
 import .Generic: disable_cache!
 import .Generic: downscale
+import .Generic: EuclideanRingResidueField
+import .Generic: EuclideanRingResidueRing
 import .Generic: enable_cache!
 import .Generic: exp_gcd
 import .Generic: exponent
@@ -655,6 +687,7 @@ import .Generic: exponent_vector
 import .Generic: exponent_word
 import .Generic: finish
 import .Generic: fit!
+import .Generic: function_field
 import .Generic: gcd
 import .Generic: gcdx
 import .Generic: groebner_basis
@@ -665,7 +698,6 @@ import .Generic: hooklength
 import .Generic: image_fn
 import .Generic: image_map
 import .Generic: interreduce!
-import .Generic: intersection
 import .Generic: inv!
 import .Generic: inverse_fn
 import .Generic: inverse_image_fn
@@ -674,6 +706,7 @@ import .Generic: invmod
 import .Generic: is_compatible
 import .Generic: is_divisible_by
 import .Generic: is_homogeneous
+import .Generic: is_power
 import .Generic: is_rimhook
 import .Generic: is_submodule
 import .Generic: is_unit
@@ -703,7 +736,6 @@ import .Generic: monomial!
 import .Generic: monomials
 import .Generic: MPolyBuildCtx
 import .Generic: mullow_karatsuba
-import .Generic: ngens
 import .Generic: norm
 import .Generic: normal_form
 import .Generic: normalise
@@ -759,14 +791,26 @@ import .Generic: LocElem
 import .Generic: roots
 import .Generic: sturm_sequence
 
+###############################################################################
+#
+#   Linear solving submodule
+#
+###############################################################################
+
+include("Solve.jl")
+
 # Do not export inv, div, divrem, exp, log, sqrt, numerator and denominator as we define our own
 export _check_dim
 export _checkbounds
 export @alias
 export @attr
 export @attributes
+export @free_associative_algebra
+export @laurent_polynomial_ring
 export @perm_str
 export @polynomial_ring
+export @power_series_ring
+export @rational_function_field
 export abs_series
 export abs_series_type
 export AbsPowerSeriesRing
@@ -810,6 +854,7 @@ export coefficients
 export coefficients_of_univariate
 export collength
 export combine_like_terms!
+export comm
 export compose
 export constant_coefficient
 export content
@@ -820,6 +865,7 @@ export deflate
 export deflation
 export degree
 export degrees
+export denest
 export dense_matrix_type
 export dense_poly_ring_type
 export dense_poly_type
@@ -839,8 +885,12 @@ export divhigh
 export divides
 export domain
 export downscale
+export echelon_form
+export echelon_form_with_transformation
 export elem_type
 export enable_cache!
+export EuclideanRingResidueField
+export EuclideanRingResidueRing
 export evaluate
 export exp_gcd
 export exponent
@@ -862,7 +912,7 @@ export fraction_field
 export free_associative_algebra
 export free_module
 export FreeModule
-export FunctionField
+export function_field
 export gcd
 export gcd_with_cofactors
 export gcdinv
@@ -874,8 +924,11 @@ export get_attribute!
 export gram
 export has_attribute
 export has_bottom_neighbor
+export has_gens
 export has_left_neighbor
 export hash
+export hermite_form
+export hermite_form_with_transformation
 export hessenberg
 export hessenberg!
 export hnf
@@ -899,7 +952,6 @@ export image_map
 export inflate
 export integral
 export interpolate
-export intersection
 export inv!
 export invariant_factors
 export inverse_fn
@@ -909,16 +961,20 @@ export invmod
 export is_compatible
 export is_constant
 export is_degree
+export is_diagonal
 export is_divisible_by
 export is_domain_type
 export is_exact_type
+export is_finiteorder
 export is_gen
+export is_hermitian
 export is_hessenberg
 export is_hnf
 export is_homogeneous
 export is_invertible
 export is_invertible_with_inverse
 export is_isomorphic
+export is_lower_triangular
 export is_monic
 export is_monomial
 export is_monomial_recursive
@@ -935,6 +991,8 @@ export is_submodule
 export is_symmetric
 export is_term
 export is_term_recursive
+export is_trivial
+export is_unicode_allowed
 export is_unit
 export is_univariate
 export is_upper_triangular
@@ -950,7 +1008,7 @@ export laurent_ring
 export laurent_series
 export laurent_series_field
 export laurent_series_ring
-export LaurentPolynomialRing
+export laurent_polynomial_ring
 export lcm
 export leading_coefficient
 export leading_exponent_vector
@@ -1015,17 +1073,12 @@ export multiply_column
 export multiply_column!
 export multiply_row
 export multiply_row!
-export ncols
 export newton_to_monomial!
-export ngens
 export norm
 export normal_form
 export normalise
-export nrows
 export nullspace
 export num_coeff
-export number_field
-export nvars
 export O
 export one
 export order
@@ -1064,8 +1117,8 @@ export primpart
 export pseudo_inv
 export pseudodivrem
 export pseudorem
-export PuiseuxSeriesField
-export PuiseuxSeriesRing
+export puiseux_series_field
+export puiseux_series_ring
 export push_term!
 export quo
 export rand_ordering
@@ -1073,13 +1126,14 @@ export randmat_triu
 export randmat_with_rank
 export rank
 export rank_profile_popov
-export RationalFunctionField
+export rational_function_field
 export reduce!
 export rel_series
 export rel_series_type
 export RelPowerSeriesRing
 export rels
 export remove
+export renest
 export renormalize!
 export rescale!
 export residue_field
@@ -1135,6 +1189,7 @@ export solve_triu
 export solve_with_det
 export sort_terms!
 export SparsePolynomialRing
+export Strassen
 export strictly_lower_triangular_matrix
 export strictly_upper_triangular_matrix
 export sub
@@ -1200,20 +1255,8 @@ function SkewDiagram(lambda::Generic.Partition, mu::Generic.Partition)
   Generic.SkewDiagram(lambda, mu)
 end
 
-function YoungTableau(part::Generic.Partition, tab::Matrix{Int})
-   Generic.YoungTableau(part, tab)
-end
-
-function YoungTableau(part::Generic.Partition, fill::Vector{Int}=collect(1:part.n))
+function YoungTableau(part::Generic.Partition, fill::Vector{T}=collect(1:part.n)) where T <: Integer
    Generic.YoungTableau(part, fill)
-end
-
-function number_field(a::Generic.Poly{Rational{BigInt}}, s::VarName, t = "\$"; cached::Bool=true)
-   return Generic.number_field(a, Symbol(s), t; cached=cached)
-end
-
-function FunctionField(p::Generic.Poly{Generic.RationalFunctionFieldElem{T, U}}, s::VarName; cached::Bool=true) where {T <: FieldElement, U <: Union{PolyRingElem, MPolyRingElem}}
-   return Generic.FunctionField(p, Symbol(s); cached=cached)
 end
 
 @doc raw"""
@@ -1235,11 +1278,22 @@ export Generic
 
 ###############################################################################
 #
-#   Polynomial Ring S, x = R["x"] syntax
+#   misc
+#
+###############################################################################
+
+include("misc/ProductIterator.jl")
+include("misc/Evaluate.jl")
+include("misc/VarNames.jl")
+
+###############################################################################
+#
+#   Polynomial Ring S, x = R[:x] syntax
 #
 ###############################################################################
 
 getindex(R::NCRing, s::VarName) = polynomial_ring(R, s)
+# `R[:x, :y]` returns `S, [x, y]` instead of `S, x, y`
 getindex(R::NCRing, s::VarName, ss::VarName...) =
    polynomial_ring(R, [Symbol(x) for x in (s, ss...)])
 
@@ -1252,10 +1306,7 @@ getindex(R::Union{Tuple{PolyRing, PolyRingElem}, Tuple{NCPolyRing, NCPolyRingEle
 #
 ################################################################################
 
-# Unfortunately `Group` is not a subtype of Set because we derive it from the
-# GroupsCore package (oh, if only Julia allowed inheritance from multiple
-# abstract types...)
-getindex(S::Union{Set, Group}, i::Int) = gen(S, i)
+getindex(S::Set, i::Int) = gen(S, i)
 
 ###############################################################################
 #
@@ -1272,15 +1323,6 @@ _matrix(R::NCRing, a::AbstractMatrix) = matrix(R, a)
 
 ###############################################################################
 #
-#   misc
-#
-###############################################################################
-
-include("misc/ProductIterator.jl")
-include("misc/Evaluate.jl")
-
-###############################################################################
-#
 #   Load error objects
 #
 ###############################################################################
@@ -1294,6 +1336,23 @@ include("error.jl")
 ###############################################################################
 
 include("Groups.jl")
+include("Rings.jl")
+
+# Generic and specific rings and fields
+include("julia/Integer.jl")
+include("julia/Rational.jl")
+include("julia/Float.jl")
+include("julia/GF.jl")
+
+include("Fields.jl")
+include("Factor.jl")
+
+# Generic functions to be defined after all rings
+include("polysubst.jl")
+
+include("NCRings.jl")
+
+include("broadcasting.jl")
 
 ################################################################################
 #
@@ -1361,6 +1420,7 @@ const RealField = JuliaRealField
 
 include("algorithms/MPolyEvaluate.jl")
 include("algorithms/MPolyFactor.jl")
+include("algorithms/MPolyNested.jl")
 include("algorithms/DensePoly.jl")
 
 ###############################################################################

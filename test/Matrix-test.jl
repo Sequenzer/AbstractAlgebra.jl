@@ -1,3 +1,25 @@
+@testset "Matrix.is_diagonal" begin
+    A = [1 0 0; 0 0 1; 1 0 1]
+    @test !is_diagonal(A)
+    @test !is_diagonal(matrix(ZZ, A))
+
+    A = [1 0 0; 0 0 1; 0 0 1]
+    @test !is_diagonal(A)
+    @test !is_diagonal(matrix(ZZ, A))
+
+    A = [1 0 0; 0 0 1]
+    @test !is_diagonal(A)
+    @test !is_diagonal(matrix(ZZ, A))
+
+    A = [1 0 0; 0 1 0]
+    @test is_diagonal(A)
+    @test is_diagonal(matrix(ZZ, A))
+
+    A = [1 0 0; 0 2 0; 0 0 3]
+    @test is_diagonal(A)
+    @test is_diagonal(matrix(ZZ, A))
+end
+
 @testset "Matrix.is_lower_triangular" begin
     A = [1 0 0; 0 0 1; 1 0 1]
     @test !is_lower_triangular(A)
@@ -12,6 +34,10 @@
     @test !is_lower_triangular(matrix(ZZ, A))
 
     A = [1 0 0; 0 1 0]
+    @test is_lower_triangular(A)
+    @test is_lower_triangular(matrix(ZZ, A))
+
+    A = [1 0 0; 0 2 0; 0 0 3]
     @test is_lower_triangular(A)
     @test is_lower_triangular(matrix(ZZ, A))
 end
@@ -30,6 +56,10 @@ end
     @test is_upper_triangular(matrix(ZZ, A))
 
     A = [1 0 0; 0 1 0]
+    @test is_upper_triangular(A)
+    @test is_upper_triangular(matrix(ZZ, A))
+
+    A = [1 0 0; 0 2 0; 0 0 3]
     @test is_upper_triangular(A)
     @test is_upper_triangular(matrix(ZZ, A))
 end
@@ -67,4 +97,19 @@ end
     @test S == matrix(QQ, [2//3 0 0; 0 2//3 0; 0 0 2//3])
     T = scalar_matrix(QQ, 3, 42)
     @test T == matrix(QQ, [42 0 0; 0 42 0; 0 0 42])
+end
+
+@testset "Strassen" begin
+   S = matrix(QQ, rand(-10:10, 100, 100))
+   T = S*S
+   TT = Strassen.mul(S, S; cutoff = 50)
+   @test T == TT
+
+   P1 = Perm(100)
+   S1 = deepcopy(S)
+   r1 = lu!(P1, S1)
+   P = Perm(100)
+   r2 = Strassen.lu!(P, S; cutoff = 50)
+   @test r1 == r2
+   @test S1 == S
 end

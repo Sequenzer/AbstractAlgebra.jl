@@ -14,8 +14,6 @@ base_ring_type(::Type{FracField{T}}) where T <: RingElem = parent_type(T)
 
 base_ring(a::FracField{T}) where T <: RingElem = a.base_ring::parent_type(T)
 
-base_ring(a::FracElem) = base_ring(parent(a))
-
 parent(a::FracElem) = a.parent
 
 function is_domain_type(::Type{T}) where {S <: RingElement, T <: FracElem{S}}
@@ -41,6 +39,21 @@ function check_parent(a::FracElem, b::FracElem, throw::Bool = true)
    return !fl
 end
 
+@doc raw"""
+    vars(a::FracElem{S}) where {S <: MPolyRingElem{<: RingElement}}
+
+Return the variables actually occurring in $a$. Returned variables are elements
+of `base_ring(a)`. The variables from the numerator go first.
+"""
+function vars(a::FracElem{S}) where {S <: MPolyRingElem{<: RingElement}}
+   n = numerator(a, false)
+   d = denominator(a, false)
+   n_vars = vars(n)
+   d_vars = vars(d)
+   nd_vars = union!(n_vars, d_vars)
+   return nd_vars
+end
+
 ###############################################################################
 #
 #   Constructors
@@ -51,7 +64,7 @@ function //(x::T, y::T) where {T <: RingElem}
    R = parent(x)
    iszero(y) && throw(DivideError())
    g = gcd(x, y)
-   z = Generic.Frac{T}(divexact(x, g), divexact(y, g))
+   z = Generic.FracFieldElem{T}(divexact(x, g), divexact(y, g))
    try
       z.parent = Generic.FracDict[R]
    catch

@@ -29,8 +29,6 @@ base_ring_type(::Type{SeriesRing{T}}) where T <: RingElement = parent_type(T)
 
 base_ring(R::SeriesRing{T}) where T <: RingElement = R.base_ring::parent_type(T)
 
-base_ring(a::SeriesElem) = base_ring(parent(a))
-
 function is_domain_type(::Type{T}) where {S <: RingElement, T <: SeriesElem{S}}
    return is_domain_type(S)
 end
@@ -965,6 +963,25 @@ function Base.inv(a::RelPowerSeriesRingElem{T}) where T <: FieldElement
         n -= 1 
     end
     return x
+end
+
+###############################################################################
+#
+#   Division with remainder
+#
+###############################################################################
+
+function Base.divrem(a::RelPowerSeriesRingElem{T}, b::RelPowerSeriesRingElem{T}) where {T <: FieldElement}
+   check_parent(a, b)
+   if pol_length(b) == 0
+      throw(DivideError())
+   end
+   if valuation(a) < valuation(b)
+      return zero(parent(a)), a
+   end
+   # valuation(a) >= valuation(b), so the exact division works
+   q = divexact(a, b)
+   return q, a - q*b
 end
 
 ###############################################################################

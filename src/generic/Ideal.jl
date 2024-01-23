@@ -4,8 +4,6 @@
 #
 ###############################################################################
 
-export normal_form, contains, intersection
-
 ###############################################################################
 #
 #   Type and parent functions
@@ -238,7 +236,7 @@ function show_inner(io::IO, n::lmnode)
 end
 
 # print a vector of nodes
-function show(io::IO, B::Vector{lmnode})
+function show(io::IO, B::Vector{lmnode{U, V, N}}) where {U, V, N}
    if print_node_level[] == 0
       BB = extract_gens(B)
       print(io, "[")
@@ -2131,11 +2129,11 @@ end
 ###############################################################################
 
 @doc raw"""
-    intersection(I::Ideal{T}, J::Ideal{T}) where T <: RingElement
+    intersect(I::Ideal{T}, J::Ideal{T}) where T <: RingElement
 
 Return the intersection of the ideals `I` and `J`.
 """
-function intersection(I::Ideal{T}, J::Ideal{T}) where T <: RingElement
+function intersect(I::Ideal{T}, J::Ideal{T}) where T <: RingElement
    R = base_ring(I)
    G1 = gens(I)
    G2 = gens(J)
@@ -2148,7 +2146,7 @@ function intersection(I::Ideal{T}, J::Ideal{T}) where T <: RingElement
    return Ideal(R, lcm(G1[1], G2[1]))
 end
 
-function intersection(I::Ideal{T}, J::Ideal{T}) where {U <: FieldElement, T <: AbstractAlgebra.PolyRingElem{U}}
+function intersect(I::Ideal{T}, J::Ideal{T}) where {U <: FieldElement, T <: AbstractAlgebra.PolyRingElem{U}}
    R = base_ring(I)
    G1 = gens(I)
    G2 = gens(J)
@@ -2161,7 +2159,7 @@ function intersection(I::Ideal{T}, J::Ideal{T}) where {U <: FieldElement, T <: A
    return Ideal(R, lcm(G1[1], G2[1]))
 end
 
-function intersection(I::Ideal{T}, J::Ideal{T}) where {U <: RingElement, T <: AbstractAlgebra.PolyRingElem{U}}
+function intersect(I::Ideal{T}, J::Ideal{T}) where {U <: RingElement, T <: AbstractAlgebra.PolyRingElem{U}}
    if contains(I, J)
       return J
    elseif contains(J, I)
@@ -2184,7 +2182,7 @@ function intersection(I::Ideal{T}, J::Ideal{T}) where {U <: RingElement, T <: Ab
    return Ideal(S, GInt)
 end
 
-function intersection(I::Ideal{T}, J::Ideal{T}) where {U <: RingElement, T <: AbstractAlgebra.MPolyRingElem{U}}
+function intersect(I::Ideal{T}, J::Ideal{T}) where {U <: RingElement, T <: AbstractAlgebra.MPolyRingElem{U}}
    if contains(I, J)
       return J
    elseif contains(J, I)

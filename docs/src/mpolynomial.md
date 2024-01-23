@@ -46,12 +46,14 @@ and the polynomial ring types belong to the abstract type `MPolyRing{T}`.
 ## Polynomial ring constructors
 
 In order to construct multivariate polynomials in AbstractAlgebra.jl, one must first
-construct the polynomial ring itself. This is accomplished with one of the following
+construct the polynomial ring itself. This is accomplished with the following
 constructors.
 
 ```@docs
-polynomial_ring(R::Ring, S::Vector{VarName}; cached::Bool = true, ordering::Symbol=:lex)
-polynomial_ring(R::Ring, n::Int, s::VarName; cached::Bool = false, ordering::Symbol = :lex)
+polynomial_ring(::Ring, ::Vector{Symbol})
+polynomial_ring(::Ring, ::Vararg)
+polynomial_ring(::Ring, ::Int)
+@polynomial_ring
 ```
 
 Like for univariate polynomials, a shorthand constructor is
@@ -95,6 +97,10 @@ julia> derivative(k, 1)
 
 julia> derivative(k, 2)
 0
+
+julia> R, x = polynomial_ring(ZZ, 10); R
+Multivariate polynomial ring in 10 variables x1, x2, x3, x4, ..., x10
+  over integers
 
 ```
 
@@ -219,7 +225,7 @@ All basic functions from the Multivariate Polynomial interface are provided.
 
 ```julia
 symbols(S::MPolyRing)
-nvars(f::MPolyRing)
+number_of_variables(f::MPolyRing)
 gens(S::MPolyRing)
 gen(S::MPolyRing, i::Int)
 ```
@@ -452,7 +458,7 @@ julia> n = length(f)
 julia> is_gen(y)
 true
 
-julia> nvars(S) == 2
+julia> number_of_variables(S) == 2
 true
 
 julia> d = total_degree(f)

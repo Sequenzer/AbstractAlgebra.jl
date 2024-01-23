@@ -29,12 +29,13 @@ inverse_image_fn(f::Map(ModuleIsomorphism)) = f.inverse_image_fn
 ###############################################################################
 
 function show(io::IO, f::Map(ModuleIsomorphism))
-   println(io, "Module isomorphism with")
-   print(io, "Domain: ")
-   print(IOContext(io, :compact => true), domain(f))
-   println(io, "")
-   print(io, "Codomain: ")
-   print(IOContext(io, :compact => true), codomain(f))
+  if get(io, :supercompact, false)
+    print(io, "Module isomorphism")
+  else
+    io = pretty(io)
+    print(io, "Hom: ", Lowercase(), domain(f))
+    print(io, " -> ", Lowercase(), codomain(f))
+  end
 end
 
 ###############################################################################
@@ -64,7 +65,7 @@ cheaply.
 """
 function Base.inv(f::Map(ModuleIsomorphism))
    T = elem_type(base_ring(domain(f)))
-   return ModuleIsomorphism{T}(codomain(f), domain(f), inverse_mat(f), mat(f))
+   return ModuleIsomorphism{T}(codomain(f), domain(f), inverse_mat(f), matrix(f))
 end
 
 ###############################################################################

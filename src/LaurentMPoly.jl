@@ -36,10 +36,10 @@ function show(io::IO, ::MIME"text/plain", p::LaurentMPolyRing)
   max_vars = 5 # largest number of variables to print
   n = nvars(p)
   print(io, "Multivariate Laurent polynomial ring")
-  print(io, "in ", ItemQuantity(nvars(p), "variable"), " ")
+  print(io, " in ", ItemQuantity(nvars(p), "variable"), " ")
   if n > max_vars
     join(io, symbols(p)[1:max_vars - 1], ", ")
-    println(io, "..., ", symbols(p)[n])
+    println(io, ", ..., ", symbols(a)[n])
   else
     join(io, symbols(p), ", ")
     println(io)
@@ -70,9 +70,6 @@ end
 function gens(R::LaurentMPolyRing)
     return [gen(R, i) for i in 1:nvars(R)]
 end
-
-coefficient_ring(a::LaurentMPolyRingElem) = coefficient_ring(parent(a))
-base_ring(a::LaurentMPolyRingElem) = base_ring(parent(a))
 
 ###############################################################################
 #
@@ -138,29 +135,23 @@ end
 
 ###############################################################################
 #
-#   LaurentPolynomialRing constructor
+#   laurent_polynomial_ring constructor
 #
 ###############################################################################
 
 @doc raw"""
-    LaurentPolynomialRing(R::Ring, s::Vector{T}; cached::Bool = true) where T <: VarName
+    laurent_polynomial_ring(R::Ring, varnames...; cached::Bool = true)
 
-Given a base ring `R` and an array of strings `s` specifying how the
-generators (variables) should be printed, return a tuple `T, (x1, x2, ...)`
-representing the new ring $T = R[x1, 1/x1, x2, 1/x2, ...]$ and the generators
-$x1, x2, ...$ of the  ring. By default the parent object `T` will
-depend only on `R` and `x1, x2, ...` and will be cached. Setting the optional
-argument `cached` to `false` will prevent the parent object `T` from being
-cached.
+Given a base ring `R` and variable names `varnames...`, say `:x, :y, :z`, return
+a tuple `S, x, y, z` representing the new ring $S = R[x, 1/x, y, 1/y, z, 1/z]$
+and the generators $x, y, z$ of the ring.
+
+By default (`cached=true`), the output `S` will be cached, i.e. if
+`laurent_polynomial_ring ` is invoked again with the same arguments, the same
+(*identical*) ring is returned. Setting `cached` to `false` ensures a distinct
+new ring is returned, and will also prevent it from being cached.
+
+For information about the many ways to specify `varnames...` refer to [`polynomial_ring`](@ref) or the
+specification in [`AbstractAlgebra.@varnames_interface`](@ref).
 """
-function LaurentPolynomialRing(R::Ring, s::AbstractVector{<:VarName}; cached::Bool = true)
-   return Generic.LaurentPolynomialRing(R, [Symbol(v) for v in s], cached=cached)
-end
-
-function LaurentPolynomialRing(R::Ring, s::Vector{Symbol}; cached::Bool = true)
-   return Generic.LaurentPolynomialRing(R, s; cached=cached)
-end
-
-function LaurentPolynomialRing(R::Ring, n::Int, s::VarName=:x; cached::Bool = false)
-   return Generic.LaurentPolynomialRing(R, [Symbol(s, i) for i=1:n]; cached=cached)
-end
+laurent_polynomial_ring(R::Ring, s::Vector{Symbol})

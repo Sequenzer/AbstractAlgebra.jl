@@ -13,10 +13,6 @@
 #
 ###############################################################################
 
-coefficient_ring(p::LaurentPolyRingElem) = coefficient_ring(parent(p))
-
-base_ring(p::LaurentPolyRingElem) = base_ring(parent(p))
-
 is_domain_type(::Type{<:LaurentPolyRingElem{T}}) where {T} = is_domain_type(T)
 
 is_exact_type(::Type{<:LaurentPolyRingElem{T}}) where {T} = is_exact_type(T)
@@ -122,7 +118,7 @@ function trailing_coefficient(p::LaurentPolyRingElem)
    isempty(dr) ? zero(base_ring(p)) : coeff(p, first(dr))
 end
 
-gens(R::LaurentPolynomialRing) = [gen(R)]
+gens(R::LaurentPolyRing) = [gen(R)]
 
 is_gen(p::LaurentPolyRingElem) = p == gen(parent(p))
 
@@ -207,7 +203,7 @@ canonical_unit(x::LaurentPolyRingElem) = canonical_unit(leading_coefficient(x))
 #
 ###############################################################################
 
-function show(io::IO, ::MIME"text/plain", p::LaurentPolynomialRing)
+function show(io::IO, ::MIME"text/plain", p::LaurentPolyRing)
   print(io, "Univariate Laurent polynomial ring in ", var(p))
   println(io)
   io = pretty(io)
@@ -215,7 +211,7 @@ function show(io::IO, ::MIME"text/plain", p::LaurentPolynomialRing)
   print(io, Dedent())
 end
 
-function show(io::IO, p::LaurentPolynomialRing)
+function show(io::IO, p::LaurentPolyRing)
   if get(io, :supercompact, false)
     print(io, "Univariate Laurent polynomial ring")
   else

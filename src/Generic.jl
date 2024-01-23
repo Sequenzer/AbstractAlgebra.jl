@@ -67,7 +67,6 @@ import Base: length
 import Base: log1p
 import Base: Matrix
 import Base: mod
-import Base: ndigits
 import Base: oct
 import Base: one
 import Base: parent
@@ -178,6 +177,7 @@ import ..AbstractAlgebra: inv
 import ..AbstractAlgebra: is_constant
 import ..AbstractAlgebra: is_domain_type
 import ..AbstractAlgebra: is_exact_type
+import ..AbstractAlgebra: is_finite
 import ..AbstractAlgebra: is_gen
 import ..AbstractAlgebra: is_monomial
 import ..AbstractAlgebra: is_square
@@ -204,13 +204,14 @@ import ..AbstractAlgebra: mul_classical
 import ..AbstractAlgebra: mul_karatsuba
 import ..AbstractAlgebra: mul!
 import ..AbstractAlgebra: mullow
-import ..AbstractAlgebra: ncols
+import ..AbstractAlgebra: number_of_columns
+import ..AbstractAlgebra: number_of_digits
+import ..AbstractAlgebra: number_of_generators
 import ..AbstractAlgebra: NCRing
 import ..AbstractAlgebra: NCRingElem
-import ..AbstractAlgebra: ngens
-import ..AbstractAlgebra: nrows
+import ..AbstractAlgebra: number_of_rows
 import ..AbstractAlgebra: numerator
-import ..AbstractAlgebra: nvars
+import ..AbstractAlgebra: number_of_variables
 import ..AbstractAlgebra: O
 import ..AbstractAlgebra: order
 import ..AbstractAlgebra: parent_type
@@ -264,8 +265,6 @@ include("generic/YoungTabs.jl")
 include("generic/Residue.jl")
 
 include("generic/ResidueField.jl")
-
-include("generic/NumberField.jl")
 
 include("generic/Poly.jl")
 
@@ -345,16 +344,26 @@ include("generic/Misc/Localization.jl")
 
 # TODO/FIXME: deprecate aliases, remove in the future
 import ..AbstractAlgebra: @alias
-@alias ResF ResidueFieldElem
-@alias ResField ResidueField
-@alias Res ResidueRingElem
-@alias ResRing ResidueRing
+Base.@deprecate_binding ResF EuclideanRingResidueFieldElem
+Base.@deprecate_binding ResField EuclideanRingResidueField
+Base.@deprecate_binding Res EuclideanRingResidueRingElem
+Base.@deprecate_binding ResRing EuclideanRingResidueRing
 
-@alias Rat RationalFunctionFieldElem
+Base.@deprecate_binding Rat RationalFunctionFieldElem
 
-@alias AbsSeriesRing AbsPowerSeriesRing
-@alias AbsSeriesElem AbsPowerSeriesRingElem
-@alias RelSeriesRing RelPowerSeriesRing
-@alias RelSeriesElem RelPowerSeriesRingElem
+Base.@deprecate_binding AbsSeriesRing AbsPowerSeriesRing
+Base.@deprecate_binding AbsSeriesElem AbsPowerSeriesRingElem
+Base.@deprecate_binding RelSeriesRing RelPowerSeriesRing
+Base.@deprecate_binding RelSeriesElem RelPowerSeriesRingElem
+
+# Deprecated in 0.34.*
+@alias Frac FracFieldElem
+@alias FactoredFrac FactoredFracFieldElem
+
+# Deprecated in 0.35.*
+Base.@deprecate_binding ResidueField EuclideanRingResidueField
+Base.@deprecate_binding ResidueFieldElem EuclideanRingResidueFieldElem
+Base.@deprecate_binding ResidueRing EuclideanRingResidueRing
+Base.@deprecate_binding ResidueRingElem EuclideanRingResidueRingElem
 
 end # generic

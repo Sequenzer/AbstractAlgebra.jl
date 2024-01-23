@@ -286,7 +286,7 @@ julia> block_diagonal_matrix([M, N])
 [.   .   7   8   9]
 ```
 
-## Conversion to Julia matrices and iteration
+## Conversion to Julia matrices, iteration and broacasting
 
 While `AbstractAlgebra` matrices are not instances of `AbstractArray`,
 they are closely related to Julia matrices. For convenience, a `Matrix`
@@ -319,6 +319,29 @@ Set{BigInt} with 6 elements:
   2
   3
   1
+```
+
+Matrices also support broadcasting, which amounts to elementwise application
+of functions to matrices:
+
+```jldoctest
+julia> k = GF(5);
+
+julia> A = ZZ[1 2; 3 4];
+
+julia> k.(A)
+[1   2]
+[3   4]
+
+julia> 3 .* A .+ 2
+[ 5    8]
+[11   14]
+
+julia> B = ZZ[3 4; 5 6];
+
+julia> ((x, y) -> x^2 + y^2).(A, B)
+[10   20]
+[34   52]
 ```
 
 ### Views
@@ -372,13 +395,13 @@ dense_matrix_type(::Ring)
 ```
 
 ```@docs
-nrows(::MatSpace)
-ncols(::MatSpace)
+number_of_rows(::MatSpace)
+number_of_columns(::MatSpace)
 ```
 
 ```@docs
-nrows(::MatrixElem{T}) where T <: RingElement
-ncols(::MatrixElem{T}) where T <: RingElement
+number_of_rows(::MatrixElem{T}) where T <: RingElement
+number_of_columns(::MatrixElem{T}) where T <: RingElement
 ```
 
 ```@docs
@@ -440,6 +463,10 @@ is_upper_triangular(::MatrixElem)
 ```
 
 ```@docs
+is_diagonal(::MatrixElem)
+```
+
+```@docs
 change_base_ring(::Ring, ::MatElem{T}) where T <: RingElement
 ```
 
@@ -474,10 +501,10 @@ julia> B = S([R(2) R(3) R(1); t t + 1 t + 2; R(-1) t^2 t^3])
 julia> T = dense_matrix_type(R)
 AbstractAlgebra.Generic.MatSpaceElem{AbstractAlgebra.Generic.Poly{Rational{BigInt}}}
 
-julia> r = nrows(B)
+julia> r = number_of_rows(B)
 3
 
-julia> c = ncols(B)
+julia> c = number_of_columns(B)
 3
 
 julia> length(B)
@@ -800,8 +827,7 @@ fflu{T <: RingElem}(::MatElem{T}, ::SymmetricGroup)
 julia> R, x = polynomial_ring(QQ, "x")
 (Univariate polynomial ring in x over rationals, x)
 
-julia> K, a = number_field(x^3 + 3x + 1, "a")
-(Residue field of univariate polynomial ring modulo x^3 + 3*x + 1, x)
+julia> K, = residue_field(R, x^3 + 3x + 1); a = K(x);
 
 julia> S = matrix_space(K, 3, 3)
 Matrix space of 3 rows and 3 columns
@@ -838,8 +864,7 @@ is_rref{T <: FieldElem}(::MatElem{T})
 julia> R, x = polynomial_ring(QQ, "x")
 (Univariate polynomial ring in x over rationals, x)
 
-julia> K, a = number_field(x^3 + 3x + 1, "a")
-(Residue field of univariate polynomial ring modulo x^3 + 3*x + 1, x)
+julia> K, = residue_field(R, x^3 + 3x + 1); a = K(x);
 
 julia> S = matrix_space(K, 3, 3)
 Matrix space of 3 rows and 3 columns
@@ -968,8 +993,7 @@ can_solve_left_reduced_triu{T <: RingElement}(::MatElem{T}, ::MatElem{T})
 julia> R, x = polynomial_ring(QQ, "x")
 (Univariate polynomial ring in x over rationals, x)
 
-julia> K, a = number_field(x^3 + 3x + 1, "a")
-(Residue field of univariate polynomial ring modulo x^3 + 3*x + 1, x)
+julia> K, = residue_field(R, x^3 + 3x + 1); a = K(x);
 
 julia> S = matrix_space(K, 3, 3)
 Matrix space of 3 rows and 3 columns
@@ -1093,8 +1117,7 @@ is_invertible{T <: RingElement}(::MatrixElem{T})
 julia> R, x = polynomial_ring(QQ, "x")
 (Univariate polynomial ring in x over rationals, x)
 
-julia> K, a = number_field(x^3 + 3x + 1, "a")
-(Residue field of univariate polynomial ring modulo x^3 + 3*x + 1, x)
+julia> K, = residue_field(R, x^3 + 3x + 1); a = K(x);
 
 julia> S = matrix_space(K, 3, 3)
 Matrix space of 3 rows and 3 columns
@@ -1184,8 +1207,7 @@ is_hessenberg{T <: RingElem}(::MatElem{T})
 **Examples**
 
 ```jldoctest
-julia> R = residue_ring(ZZ, 7)
-Residue ring of integers modulo 7
+julia> R, = residue_ring(ZZ, 7);
 
 julia> S = matrix_space(R, 4, 4)
 Matrix space of 4 rows and 4 columns

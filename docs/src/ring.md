@@ -201,12 +201,10 @@ rand(R::NCRing, v...)
 For commutative rings supporting factorization and irreducibility testing, the
 following optional functions may be implemented.
 
-```julia
+```@docs
 is_irreducible(a::T) where T <: RingElement
 is_squarefree(a::T) where T <: RingElement
 ```
-
-Decide whether `a` is irreducible or squarefree, respectively.
 
 ```julia
 factor(a::T) where T <: RingElement

@@ -9,7 +9,7 @@
 
 abstract type Set end
 
-const Group = GroupsCore.Group # with * as operation
+abstract type Group <: Set end # with * as operation
 
 abstract type AdditiveGroup <: Set end # with + as operation
 
@@ -25,7 +25,7 @@ abstract type Field <: Ring end
 
 abstract type SetElem end
 
-const GroupElem = GroupsCore.GroupElement # with * as operation
+abstract type GroupElem <: SetElem end # with * as operation
 
 abstract type AdditiveGroupElem <: SetElem end # with + as operation
 
@@ -79,7 +79,7 @@ abstract type MPolyRing{T} <: Ring end
 
 abstract type UniversalPolyRing{T} <: Ring end
 
-abstract type LaurentPolynomialRing{T} <: Ring end
+abstract type LaurentPolyRing{T} <: Ring end
 
 abstract type LaurentMPolyRing{T} <: Ring end
 

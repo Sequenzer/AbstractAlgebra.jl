@@ -39,21 +39,19 @@ function O(a::PuiseuxSeriesElem{T}) where T <: RingElement
    return parent(a)(laur, denominator(val))
 end
 
-parent_type(::Type{T}) where {S <: RingElement, T <: PuiseuxSeriesRingElem{S}} = PuiseuxSeriesRing{S}
+parent_type(::Type{PuiseuxSeriesRingElem{T}}) where T <: RingElement = PuiseuxSeriesRing{T}
 
-parent_type(::Type{T}) where {S <: FieldElement, T <: PuiseuxSeriesFieldElem{S}} = PuiseuxSeriesField{S}
+parent_type(::Type{PuiseuxSeriesFieldElem{T}}) where T <: FieldElement = PuiseuxSeriesField{T}
 
 parent(a::PuiseuxSeriesElem) = a.parent
 
-elem_type(::Type{T}) where {S <: RingElement, T <: PuiseuxSeriesRing{S}} = PuiseuxSeriesRingElem{S}
+elem_type(::Type{PuiseuxSeriesRing{T}}) where T <: RingElement = PuiseuxSeriesRingElem{T}
 
-elem_type(::Type{T}) where {S <: FieldElement, T <: PuiseuxSeriesField{S}} = PuiseuxSeriesFieldElem{S}
+elem_type(::Type{PuiseuxSeriesField{T}}) where T <: FieldElement = PuiseuxSeriesFieldElem{T}
 
 base_ring(R::PuiseuxSeriesRing{T}) where T <: RingElement = base_ring(laurent_ring(R))
 
 base_ring(R::PuiseuxSeriesField{T}) where T <: FieldElement = base_ring(laurent_ring(R))
-
-base_ring(a::PuiseuxSeriesElem) = base_ring(parent(a))
 
 @doc raw"""
     max_precision(R::PuiseuxSeriesRing{T}) where T <: RingElement
@@ -340,21 +338,21 @@ end
 #
 ###############################################################################
 
-function _make_parent(g, p::PuiseuxSeriesElem, cached::Bool)
+function _make_parent(g::T, p::PuiseuxSeriesElem, cached::Bool) where T
    R = parent(g(zero(base_ring(p))))
    S = parent(p)
    sym = var(S)
    max_prec = max_precision(S)
-   return AbstractAlgebra.PuiseuxSeriesRing(R, max_prec, sym; cached=cached)[1]
+   return AbstractAlgebra.puiseux_series_ring(R, max_prec, sym; cached=cached)[1]
 end
 
-function map_coefficients(g, p::PuiseuxSeriesElem{<:RingElement};
+function map_coefficients(g::T, p::PuiseuxSeriesElem{<:RingElement};
                     cached::Bool = true,
-                    parent::Ring = _make_parent(g, p, cached))
+                    parent::Ring = _make_parent(g, p, cached)) where T
    return _map(g, p, parent)
 end
 
-function _map(g, p::PuiseuxSeriesElem, Rx)
+function _map(g::T, p::PuiseuxSeriesElem, Rx) where T
    R = base_ring(Rx)
    res = Rx(map_coefficients(g, p.data), scale(p))
    res = rescale!(res)
@@ -368,7 +366,7 @@ end
 ################################################################################
 
 function _change_puiseux_series_ring(R, Rx, cached)
-   P, _ = AbstractAlgebra.PuiseuxSeriesRing(R, max_precision(Rx),
+   P, _ = AbstractAlgebra.puiseux_series_ring(R, max_precision(Rx),
                                                var(Rx), cached = cached)
    return P
 end
@@ -738,7 +736,7 @@ rand(S::PuiseuxSeriesRingOrField, val_range, scale_range, v...) =
 
 function zero!(a::PuiseuxSeriesElem{T}) where T <: RingElement
    zero!(a.data)
-   a = set_scale(a, 1)
+   a.scale = 1
    return a
 end
 

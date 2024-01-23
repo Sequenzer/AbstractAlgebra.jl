@@ -4,8 +4,6 @@
 #
 ###############################################################################
 
-export exponent_word, set_exponent_word!
-
 ###############################################################################
 #
 #   Data type and parent object methods
@@ -26,15 +24,13 @@ end
 
 base_ring_type(::Type{FreeAssAlgebra{T}}) where T <: RingElement = parent_type(T)
 
-function base_ring(a::FreeAssAlgebra{T}) where T <: RingElement
-    return a.base_ring::parent_type(T)
-end
+base_ring(a::FreeAssAlgebra{T}) where T <: RingElement = a.base_ring::parent_type(T)
 
 function symbols(a::FreeAssAlgebra)
     return a.S
 end
 
-function nvars(a::FreeAssAlgebra)
+function number_of_variables(a::FreeAssAlgebra)
     return length(a.S)
 end
 
@@ -89,8 +85,8 @@ function isone(a::FreeAssAlgElem{T}) where T
     end
 end
 
-function ngens(a::FreeAssAlgebra{T}) where T
-    return nvars(a)
+function number_of_generators(a::FreeAssAlgebra{T}) where T
+    return number_of_variables(a)
 end
 
 function gen(a::FreeAssAlgebra{T}, i::Int) where T
@@ -689,7 +685,7 @@ function change_base_ring(
 end
 
 function map_coefficients(
-    f,
+    f::S,
     a::FreeAssAlgElem{T};
     cached::Bool = true,
     parent::AbstractAlgebra.FreeAssAlgebra = _change_freeassalg_ring(
@@ -697,11 +693,11 @@ function map_coefficients(
         parent(a),
         cached,
     ),
-) where T <: RingElement
+) where {S, T <: RingElement}
     return _map(f, a, parent)
 end
 
-function _map(g, a::FreeAssAlgElem{T}, Rx) where T <: RingElement
+function _map(g::S, a::FreeAssAlgElem{T}, Rx) where {S, T <: RingElement}
     cvzip = zip(coefficients(a), exponent_words(a))
     M = MPolyBuildCtx(Rx)
     for (c, v) in cvzip

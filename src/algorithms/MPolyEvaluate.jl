@@ -270,7 +270,8 @@ end
 # arithmetic between ctxB and ctxC should be in ctxA
 function _evaluate_horner_non_rec(
   ctxA::Ring,
-  Bcoeffs, Bexps::Vector{Vector{Int}},
+  Bcoeffs,
+  Bexps::Vector{Vector{Int}},
   C::Vector,
   ctxC::Ring
 )
@@ -411,7 +412,7 @@ function evaluate_horner(B::MPolyRingElem, C::Vector{<:RingElement})
   ctxC = parent(C[1])
   Bcoeffs = collect(coefficients(B))
   ctxA = parent(one(coefficient_ring(B)) * one(ctxC))
-  Bexps = collect(exponent_vectors(B))
+  Bexps = collect(exponent_vectors(B))::Vector{Vector{Int}}
   return _evaluate_horner_non_rec(ctxA, Bcoeffs, Bexps, C, ctxC)
 end
 
@@ -494,7 +495,7 @@ end
 
 # should allow e to be mutated !!
 function look_up(PC::PowerCache, e::Vector{Int})
-  all(x->(x==0), e) && return one(p[1])
+  all(x->(x==0), e) && return one(PC.p[1])
   haskey(PC.power_cache, e) && return PC.power_cache[e]
   e = deepcopy(e)   # !!
   if all(x->(x<=1), e)

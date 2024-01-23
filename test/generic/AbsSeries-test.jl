@@ -139,7 +139,7 @@ end
    
    @test characteristic(R) == 0
 
-   T = residue_ring(ZZ, 7)
+   T, = residue_ring(ZZ, 7)
    U, y = power_series_ring(T, 10, "y", model=:capped_absolute)
 
    @test modulus(T) == 7
@@ -257,7 +257,7 @@ end
    end
 
    # Non-integral domain
-   T = residue_ring(ZZ, 6)
+   T, = residue_ring(ZZ, 6)
    R, x = power_series_ring(T, 10, "x", model=:capped_absolute)
    for iter = 1:300
       f = rand(R, 0:12, 0:5)
@@ -300,7 +300,7 @@ end
    end
 
    # Non-integral domain
-   T = residue_ring(ZZ, 6)
+   T, = residue_ring(ZZ, 6)
    R, x = power_series_ring(T, 10, "x", model=:capped_absolute)
    for iter = 1:100
       f = rand(R, 0:12, 0:5)
@@ -358,7 +358,7 @@ end
    end
 
    # Non-integral domain
-   R = residue_ring(ZZ, 6)
+   R, = residue_ring(ZZ, 6)
    S, x = power_series_ring(R, 10, "x", model=:capped_absolute)
    for iter = 1:500
       f = rand(S, 0:12, 0:5)
@@ -440,7 +440,7 @@ end
    end
 
    # Non-integral domain
-   R = residue_ring(ZZ, 6)
+   R, = residue_ring(ZZ, 6)
    S, x = power_series_ring(R, 10, "x", model=:capped_absolute)
    for iter = 1:500
       f = rand(S, 0:12, 0:5)
@@ -503,7 +503,7 @@ end
    end
 
    # Non-integral domain
-   R = residue_ring(ZZ, 6)
+   R, = residue_ring(ZZ, 6)
    S, x = power_series_ring(R, 10, "x", model=:capped_absolute)
    for iter = 1:500
       f = S()
@@ -591,7 +591,7 @@ end
    for iter = 1:100
       n = rand(2:26)
 
-      Zn = residue_ring(ZZ, n)
+      Zn, = residue_ring(ZZ, n)
       R, x = power_series_ring(Zn, 10, "x", model=:capped_absolute)
 
       f = rand(R, 0:12, 0:n - 1)
@@ -649,7 +649,7 @@ end
    @test_throws DomainError shift_right(f, -rand(2:100))
 
    # Non-integral domain
-   T = residue_ring(ZZ, 6)
+   T, = residue_ring(ZZ, 6)
    R, x = power_series_ring(T, 10, "x", model=:capped_absolute)
    for iter = 1:300
       f = rand(R, 0:12, 0:5)
@@ -706,7 +706,7 @@ end
    @test_throws DomainError truncate(f, -rand(2:100))
 
    # Non-integral domain
-   T = residue_ring(ZZ, 6)
+   T, = residue_ring(ZZ, 6)
    R, x = power_series_ring(T, 10, "x", model=:capped_absolute)
    for iter = 1:300
       f = rand(R, 0:12, 0:5)
@@ -762,7 +762,7 @@ end
     end
 
     # Non-integral domain
-    T = residue_ring(ZZ, 6)
+    T, = residue_ring(ZZ, 6)
     R, x = power_series_ring(T, 10, "x", model=:capped_absolute)
     for iter = 1:300
        f = R()
@@ -825,7 +825,7 @@ end
     end
 
     # Non-integral domain
-    T = residue_ring(ZZ, 6)
+    T, = residue_ring(ZZ, 6)
     R, x = power_series_ring(T, 10, "x", model=:capped_absolute)
     for iter = 1:300
         f1 = rand(R, 0:10, -10:10)
@@ -905,7 +905,7 @@ end
 
     # Characteristic p field
     for p in [2, 7, 19, 65537, ZZ(2), ZZ(7), ZZ(19), ZZ(65537)]
-        R = residue_field(ZZ, p)
+        R, = residue_field(ZZ, p)
 
         S, x = power_series_ring(R, 10, "x", model=:capped_absolute)
 
@@ -934,7 +934,7 @@ end
         end
     end
 
-    R = residue_field(ZZ, 2)
+    R, = residue_field(ZZ, 2)
     T, y = polynomial_ring(R, "x")
 
     S, x = power_series_ring(T, 10, "x", model=:capped_absolute)
@@ -1002,7 +1002,7 @@ end
    end
 
    # Non-integral domain
-   T = residue_ring(ZZ, 6)
+   T, = residue_ring(ZZ, 6)
    R, x = power_series_ring(T, 10, "x", model=:capped_absolute)
    for iter = 1:300
       s = rand(0:9)
@@ -1045,7 +1045,7 @@ end
    end
 
    # Non-integral domain
-   T = residue_ring(ZZ, 6)
+   T, = residue_ring(ZZ, 6)
    R, x = power_series_ring(T, 10, "x", model=:capped_absolute)
    for iter = 1:300
       f = rand(R, 0:0, 0:5)
@@ -1143,7 +1143,7 @@ end
    end
 
    # Non-integral domain
-   R = residue_ring(ZZ, 143)
+   R, = residue_ring(ZZ, 143)
    S, x = power_series_ring(R, 10, "x", model=:capped_absolute)
 
    for iter = 1:10
@@ -1247,3 +1247,37 @@ end
       @test isequal(h, R())
    end
 end
+
+@testset "Generic.AbsSeries.euclidean" begin
+   R, x = power_series_ring(QQ, 20, "x", model = :capped_absolute)
+   S, y = power_series_ring(GF(5), 20, "y", model = :capped_absolute)
+
+   T, z = power_series_ring(GF(7), 20, "z", model = :capped_absolute)
+   @test_throws ErrorException divrem(y, z)
+
+   for (T, t) in [ (R, x), (S, y) ]
+      @test divrem(t^2, t) == (t, zero(T))
+      @test divrem(t + 1, t) == (zero(T), t + 1)
+      @test_throws DivideError divrem(t, zero(T))
+
+      @test gcd(t^2*(t - 1), t^2) == t^2
+      @test gcd((t + 1)*(t - 1), t + 1) == one(T)
+      @test gcdx(t^2*(t - 1), t^2) == (t^2, zero(T), one(T))
+      g, u, v = gcdx((t + 1)*(t - 1), t + 1)
+      @test u*(t + 1)*(t - 1) + v*(t + 1) == g
+
+      M = matrix(T, 4, 3, [ 0 0 0; t^3 + 1 t^2 0; 0 t^2 t^5; t^4 + 1 t^2 t^5 + t^3 ])
+      @test is_hnf(hnf(M))
+      H, U = hnf_with_transform(M)
+      @test is_hnf(H)
+      @test U*M == H
+      @test is_unit(det(U))
+
+      @test is_snf(snf(M))
+      S, U, V = snf_with_transform(M)
+      @test is_snf(S)
+      @test U*M*V == S
+      @test is_unit(det(U))
+      @test is_unit(det(V))
+   end
+ end

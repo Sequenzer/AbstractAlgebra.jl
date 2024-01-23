@@ -5,8 +5,6 @@
 #
 ###############################################################################
 
-export FunctionField, base_field
-
 ###############################################################################
 #
 #   Rational arithmetic : equivalent of _fmpq in Flint for k(x)
@@ -537,8 +535,6 @@ function base_ring(R::FunctionField{T}) where T <: FieldElement
    return R.base_ring::RationalFunctionField{T, U}
 end
 
-base_ring(R::FunctionFieldElem) = base_ring(parent(R))
-
 # For consistency with number fields in Hecke.jl
 @doc raw"""
     base_field(R::FunctionField)
@@ -1027,12 +1023,22 @@ function divexact(a::FunctionFieldElem, b::RingElem; check::Bool=true)
 end
 
 function divexact(a::Union{Rational, Integer},
-                                       b::FunctionFieldElem; check::Bool=true)
+            b::FunctionFieldElem{T}; check::Bool=true) where T <: FieldElement
    return a*inv(b)
 end
 
 function divexact(a::T,
-            b::FunctionFieldElem{T}; check::Bool=true) where T <: FieldElement
+            b::FunctionFieldElem{T}; check::Bool=true) where T <: Integer
+   return a*inv(b)
+end
+
+function divexact(a::T,
+            b::FunctionFieldElem{T}; check::Bool=true) where T <: Rational
+   return a*inv(b)
+end
+
+function divexact(a::T,
+            b::FunctionFieldElem{T}; check::Bool=true) where T <: FieldElem
    return a*inv(b)
 end
 
@@ -1360,15 +1366,19 @@ function traces_precompute(pol::Poly{W}, d::W) where {T <: FieldElement, W <: Po
    return P, Pden
 end
 
-function FunctionField(p::Poly{RationalFunctionFieldElem{T, U}}, s::Symbol; cached::Bool=true) where {T <: FieldElement, U <: PolyRingElem}
+function function_field(p::Poly{RationalFunctionFieldElem{T, U}}, s::VarName; cached::Bool=true) where {T <: FieldElement, U <: PolyRingElem}
    length(p) < 2 && error("Polynomial must have degree at least 1")
-   pol, den = _rat_poly(p, s)
-   
-   par = FunctionField{T}(pol, den, s, cached)
+   pol, den = _rat_poly(p, Symbol(s))
+
+   par = FunctionField{T}(pol, den, Symbol(s), cached)
    par.monic, par.powers, par.powers_den = powers_precompute(pol, den)
    par.traces, par.traces_den = traces_precompute(pol, den)
    par.base_ring = base_ring(p)
    par.pol = p
 
    return par, gen(par)
+end
+
+function function_field(p::Generic.Poly{Generic.RationalFunctionFieldElem{T, U}}, s::VarName; cached::Bool=true) where {T <: FieldElement, U <: MPolyRingElem}
+   return Generic.FunctionField(p, Symbol(s); cached)
 end

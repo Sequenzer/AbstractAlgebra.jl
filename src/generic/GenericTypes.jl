@@ -336,7 +336,7 @@ end
 # N is an Int which is the number of variables
 # (plus one if ordered by total degree)
 
-mutable struct MPolyRing{T <: RingElement} <: AbstractAlgebra.MPolyRing{T}
+@attributes mutable struct MPolyRing{T <: RingElement} <: AbstractAlgebra.MPolyRing{T}
    base_ring::Ring
    S::Vector{Symbol}
    ord::Symbol
@@ -462,7 +462,6 @@ end
 mutable struct SparsePolyRing{T <: RingElement} <: AbstractAlgebra.Ring
    base_ring::Ring
    S::Symbol
-   num_vars::Int
 
    function SparsePolyRing{T}(R::Ring, s::Symbol, cached::Bool = true) where T <: RingElement
       return get_cached!(SparsePolyID, (R, s), cached) do
@@ -494,11 +493,11 @@ end
 #
 ###############################################################################
 
-abstract type LaurentPolynomialRing{T} <: AbstractAlgebra.LaurentPolynomialRing{T} end
+abstract type LaurentPolyRing{T} <: AbstractAlgebra.LaurentPolyRing{T} end
 
 mutable struct LaurentPolyWrapRing{T  <: RingElement,
                                    PR <: AbstractAlgebra.PolyRing{T}
-                                  } <: LaurentPolynomialRing{T}
+                                  } <: LaurentPolyRing{T}
    polyring::PR
 
    function LaurentPolyWrapRing(pr::PR, cached::Bool = true) where {
@@ -577,15 +576,15 @@ end
 
 ###############################################################################
 #
-#   ResidueRing / ResidueRingElem
+#   EuclideanRingResidueRing / EuclideanRingResidueRingElem
 #
 ###############################################################################
 
-mutable struct ResidueRing{T <: RingElement} <: AbstractAlgebra.ResidueRing{T}
+mutable struct EuclideanRingResidueRing{T <: RingElement} <: AbstractAlgebra.ResidueRing{T}
    base_ring::Ring
    modulus::T
 
-   function ResidueRing{T}(modulus::T, cached::Bool = true) where T <: RingElement
+   function EuclideanRingResidueRing{T}(modulus::T, cached::Bool = true) where T <: RingElement
       c = canonical_unit(modulus)
       if !isone(c)
         modulus = divexact(modulus, c)
@@ -594,30 +593,30 @@ mutable struct ResidueRing{T <: RingElement} <: AbstractAlgebra.ResidueRing{T}
 
       return get_cached!(ModulusDict, (R, modulus), cached) do
          new{T}(R, modulus)
-      end::ResidueRing{T}
+      end::EuclideanRingResidueRing{T}
    end
 end
 
 const ModulusDict = CacheDictType{Tuple{Ring, RingElement}, Ring}()
 
-mutable struct ResidueRingElem{T <: RingElement} <: AbstractAlgebra.ResElem{T}
+mutable struct EuclideanRingResidueRingElem{T <: RingElement} <: AbstractAlgebra.ResElem{T}
    data::T
-   parent::ResidueRing{T}
+   parent::EuclideanRingResidueRing{T}
 
-   ResidueRingElem{T}(a::T) where T <: RingElement = new{T}(a)
+   EuclideanRingResidueRingElem{T}(a::T) where T <: RingElement = new{T}(a)
 end
 
 ###############################################################################
 #
-#   ResidueField / ResFieldElem
+#   EuclideanRingResidueField / ResFieldElem
 #
 ###############################################################################
 
-mutable struct ResidueField{T <: RingElement} <: AbstractAlgebra.ResidueField{T}
+mutable struct EuclideanRingResidueField{T <: RingElement} <: AbstractAlgebra.ResidueField{T}
    base_ring::Ring
    modulus::T
 
-   function ResidueField{T}(modulus::T, cached::Bool = true) where T <: RingElement
+   function EuclideanRingResidueField{T}(modulus::T, cached::Bool = true) where T <: RingElement
       c = canonical_unit(modulus)
       if !isone(c)
         modulus = divexact(modulus, c)
@@ -625,17 +624,32 @@ mutable struct ResidueField{T <: RingElement} <: AbstractAlgebra.ResidueField{T}
       R = parent(modulus)
       return get_cached!(ModulusFieldDict, (R, modulus), cached) do
          new{T}(R, modulus)
-      end::ResidueField{T}
+      end::EuclideanRingResidueField{T}
    end
 end
 
 const ModulusFieldDict = CacheDictType{Tuple{Ring, RingElement}, Field}()
 
-mutable struct ResidueFieldElem{T <: RingElement} <: AbstractAlgebra.ResFieldElem{T}
+mutable struct EuclideanRingResidueFieldElem{T <: RingElement} <: AbstractAlgebra.ResFieldElem{T}
    data::T
-   parent::ResidueField{T}
+   parent::EuclideanRingResidueField{T}
 
-   ResidueFieldElem{T}(a::T) where T <: RingElement = new{T}(a)
+   EuclideanRingResidueFieldElem{T}(a::T) where T <: RingElement = new{T}(a)
+end
+
+################################################################################
+#
+#  Residue ring/field map
+#
+################################################################################
+
+mutable struct EuclideanRingResidueMap{S, T} <: AbstractAlgebra.Map{S, T, AbstractAlgebra.SetMap, EuclideanRingResidueMap}
+  domain::S
+  codomain::T
+
+  function EuclideanRingResidueMap(domain::S, codomain::T) where {S, T}
+    return new{S, T}(domain, codomain)
+  end
 end
 
 ###############################################################################
@@ -836,8 +850,8 @@ mutable struct AbsMSeriesRing{T <: RingElement, S} <:
                                                  AbstractAlgebra.MSeriesRing{T}
    poly_ring::AbstractAlgebra.MPolyRing{T}
    prec_max::Vector{Int} # used for weights in weighted mode
-   sym::Vector{Symbol} # -1 if not weighted
-   weighted_prec::Int
+   sym::Vector{Symbol}
+   weighted_prec::Int # -1 if not weighted
 
    function AbsMSeriesRing{T, S}(poly_ring::AbstractAlgebra.MPolyRing{T},
             prec::Vector{Int}, s::Vector{Symbol}, cached::Bool = true) where
@@ -861,7 +875,7 @@ end
 const AbsMSeriesID = CacheDictType{Tuple{Ring,
                                        Vector{Int}, Vector{Symbol}, Int}, Ring}()
 
-mutable struct AbsMSeries{T <: RingElement, S} <:
+mutable struct AbsMSeries{T <: RingElement, S <: AbstractAlgebra.MPolyRingElem{T}} <:
                                               AbstractAlgebra.AbsMSeriesElem{T}
    poly::S
    prec::Vector{Int}
@@ -876,7 +890,7 @@ end
 
 ###############################################################################
 #
-#   FracField / Frac
+#   FracField / FracFieldElem
 #
 ###############################################################################
 
@@ -892,12 +906,12 @@ end
 
 const FracDict = CacheDictType{Ring, Ring}()
 
-mutable struct Frac{T <: RingElem} <: AbstractAlgebra.FracElem{T}
+mutable struct FracFieldElem{T <: RingElem} <: AbstractAlgebra.FracElem{T}
    num::T
    den::T
    parent::FracField{T}
 
-   Frac{T}(num::T, den::T) where T <: RingElem = new{T}(num, den)
+   FracFieldElem{T}(num::T, den::T) where T <: RingElem = new{T}(num, den)
 end
 
 ###############################################################################
@@ -928,7 +942,7 @@ end
 
 ###############################################################################
 #
-#   FactoredFracField / FactoredFrac
+#   FactoredFracField / FactoredFracFieldElem
 #
 ###############################################################################
 
@@ -953,7 +967,7 @@ end
 # the object owns the .terms vector but not necessarily its entries, so mutating
 # the vector is allowed when mutating the object but be aware before mutating
 # any entry of the vector
-mutable struct FactoredFrac{T <: RingElement} <: AbstractAlgebra.FracElem{T}
+mutable struct FactoredFracFieldElem{T <: RingElement} <: AbstractAlgebra.FracElem{T}
    unit::T
    terms::Vector{FactoredFracTerm{T}}
    parent::FactoredFracField{T}
@@ -961,7 +975,7 @@ end
 
 ###############################################################################
 #
-#   RationalFunctionField / rational_function
+#   RationalFunctionField / RationalFunctionFieldElem
 #
 ###############################################################################
 
@@ -981,15 +995,15 @@ end
 const RationalFunctionFieldDict = CacheDictType{Tuple{Field, Union{Symbol, Vector{Symbol}}}, Field}()
 
 mutable struct RationalFunctionFieldElem{T <: FieldElement, U <: Union{PolyRingElem, MPolyRingElem}} <: AbstractAlgebra.FieldElem
-   d::Frac{U}
+   d::FracFieldElem{U}
    parent::RationalFunctionField{T, U}
 
-   RationalFunctionFieldElem{T, U}(f::Frac{U}) where {T <: FieldElement, U <: Union{PolyRingElem, MPolyRingElem}} = new{T, U}(f)
+   RationalFunctionFieldElem{T, U}(f::FracFieldElem{U}) where {T <: FieldElement, U <: Union{PolyRingElem, MPolyRingElem}} = new{T, U}(f)
 end
 
 ###############################################################################
 #
-#   FunctionField / function_field_elem
+#   FunctionField / FunctionFieldElem
 #
 ###############################################################################
 
@@ -1111,7 +1125,7 @@ function MatAlgElem{T}(R::NCRing, n::Int, A::Vector{T}) where T <: NCRingElement
    @assert elem_type(R) === T
    t = Matrix{T}(undef, n, n)
    for i = 1:n, j = 1:n
-      t[i, j] = A[(i - 1) * c + j]
+      t[i, j] = A[(i - 1) * n + j]
    end
    return MatAlgElem{T}(R, t)
 end

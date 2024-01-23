@@ -1,4 +1,3 @@
-export Localization, LocElem, Loc, prime
 
 ###############################################################################
 
@@ -120,8 +119,6 @@ elem_type(::Type{Loc{T}}) where {T} = LocElem{T}
 parent_type(::Type{LocElem{T}}) where {T} = Loc{T}
 
 base_ring(L::Loc) = L.base_ring
-
-base_ring(a::LocElem) = base_ring(parent(a))
 
 parent(a::LocElem) = a.parent
 
@@ -300,7 +297,7 @@ end
 #
 ###############################################################################
 
-function gcd(a::LocElem{T}, b::LocElem{T}) where {T <: RingElement}
+function gcd(a::LocElem{T}, b::LocElem{T}) where {T <: Union{RingElem,Integer}}
    check_parent(a,b)
    iszero(a) && return inv(canonical_unit(b)) * b
    iszero(b) && return inv(canonical_unit(a)) * a
@@ -313,7 +310,7 @@ function gcd(a::LocElem{T}, b::LocElem{T}) where {T <: RingElement}
    return par(elem)
 end
 
-function lcm(a::LocElem{T}, b::LocElem{T}) where {T <: RingElement}
+function lcm(a::LocElem{T}, b::LocElem{T}) where {T <: Union{RingElem,Integer}}
    check_parent(a,b)
    par = parent(a)
    (iszero(a) || iszero(b)) && return par()

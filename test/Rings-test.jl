@@ -1,4 +1,5 @@
 include("julia/Integers-test.jl")
+include("broadcasting-test.jl")
 
 # artificially low cutoffs for testing purposes
 function AbstractAlgebra.hgcd_prefers_basecase(a::T, b::T) where T <: PolyRingElem
@@ -30,6 +31,7 @@ include("generic/LaurentMPoly-test.jl")
 include("generic/UnivPoly-test.jl")
 include("algorithms/MPolyEvaluate-test.jl")
 include("algorithms/MPolyFactor-test.jl")
+include("algorithms/MPolyNested-test.jl")
 include("algorithms/DensePoly-test.jl")
 include("algorithms/GenericFunctions-test.jl")
 
@@ -51,6 +53,12 @@ end
    Qx, x = QQ["x"]
    p, q = @inferred ppio(zero(Qx), x)
    @test isone(p) && q == zero(Qx)
+
+   @testset "ppio($a,$b) for $T" for a in -25:25, b in -25:25, T in [Int, BigInt, Float64]
+     c, d = ppio(T(a),T(b))
+     @test a == c * d
+     @test a == 0 || c == gcd(T(a), T(b)^5)
+   end
 end
 
 @testset "properties" begin

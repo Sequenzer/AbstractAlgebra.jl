@@ -39,8 +39,8 @@ function Base.hash(a::MatAlgElem, h::UInt)
    return b
 end
 
-nrows(a::MatAlgebra) = a.n
-ncols(a::MatAlgebra) = nrows(a)
+number_of_rows(a::MatAlgebra) = a.n
+number_of_columns(a::MatAlgebra) = number_of_rows(a)
 
 @doc raw"""
     degree(a::MatAlgebra)
@@ -71,7 +71,7 @@ is_zero_divisor(a::MatAlgElem{T}) where T <: FieldElement = rank(a) != degree(a)
 
 function is_zero_divisor_with_annihilator(a::MatAlgElem{T}) where T <: RingElement
    f, b = is_zero_divisor_with_annihilator(det(a))
-   throw(NotImplementedError(:adj, A)) #return f, b*adj(A)
+   throw(NotImplementedError(:adj, a)) #return f, b*adj(A)
 end
 
 
@@ -218,7 +218,7 @@ function ==(x::MatAlgElem, y::Union{Integer, Rational, AbstractFloat})
    end
    for i = 1:n
       for j = 1:n
-         if i != j && !iszero(x[i, j])
+         if i != j && !is_zero_entry(x, i, j)
             return false
          end
       end
@@ -237,7 +237,7 @@ function ==(x::MatAlgElem{T}, y::T) where T <: NCRingElem
    end
    for i = 1:n
       for j = 1:n
-         if i != j && !iszero(x[i, j])
+         if i != j && !is_zero_entry(x, i, j)
             return false
          end
       end
@@ -360,7 +360,7 @@ function randmat_triu(rng::AbstractRNG, S::MatAlgebra, v...)
       for j = i:n
          M[i, j] = rand(rng, R, v...)
       end
-      while iszero(M[i, i])
+      while is_zero_entry(M, i, i)
          M[i, i] = rand(rng, R, v...)
       end
    end
@@ -378,7 +378,7 @@ function randmat_with_rank(rng::AbstractRNG, S::MatAlgebra{T}, rank::Int, v...) 
          M[i, j] = R()
       end
       M[i, i] = rand(rng, R, v...)
-      while iszero(M[i, i])
+      while is_zero_entry(M, i, i)
          M[i, i] = rand(rng, R, v...)
       end
       for j = i + 1:n

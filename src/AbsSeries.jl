@@ -115,7 +115,7 @@ similar(x::AbsPowerSeriesRingElem, var::VarName=var(parent(x)); cached::Bool=tru
    similar(x, base_ring(x),
                   max_precision(parent(x)), Symbol(var); cached)
 
-zero(a::AbsPowerSeriesRingElem, R::Ring, max_prec::Int, var::VarName=var(parent(x)); cached::Bool=true) =
+zero(a::AbsPowerSeriesRingElem, R::Ring, max_prec::Int, var::VarName=var(parent(a)); cached::Bool=true) =
    similar(a, R, max_prec, var; cached)
 
 
@@ -740,6 +740,25 @@ end
 
 ###############################################################################
 #
+#   Division with remainder
+#
+###############################################################################
+
+function Base.divrem(a::AbsPowerSeriesRingElem{T}, b::AbsPowerSeriesRingElem{T}) where {T <: FieldElement}
+   check_parent(a, b)
+   if length(b) == 0
+      throw(DivideError())
+   end
+   if valuation(a) < valuation(b)
+      return zero(parent(a)), a
+   end
+   # valuation(a) >= valuation(b), so the exact division works
+   q = divexact(a, b)
+   return q, a - q*b
+end
+
+###############################################################################
+#
 #   Composition
 #
 ###############################################################################
@@ -1012,7 +1031,7 @@ end
 #
 ################################################################################
 
-function _make_parent(g, p::AbsPowerSeriesRingElem, cached::Bool)
+function _make_parent(g::T, p::AbsPowerSeriesRingElem, cached::Bool) where T
    R = parent(g(zero(base_ring(p))))
    S = parent(p)
    sym = var(S)
@@ -1029,13 +1048,13 @@ If the optional `parent` keyword is provided, the polynomial will be an
 element of `parent`. The caching of the parent object can be controlled
 via the `cached` keyword argument.
 """
-function map_coefficients(g, p::AbsPowerSeriesRingElem{<:RingElement};
+function map_coefficients(g::T, p::AbsPowerSeriesRingElem{<:RingElement};
                     cached::Bool = true,
-                    parent::Ring = _make_parent(g, p, cached))
+		    parent::Ring = _make_parent(g, p, cached)) where {T}
    return _map(g, p, parent)
 end
 
-function _map(g, p::AbsPowerSeriesRingElem, Rx)
+function _map(g::T, p::AbsPowerSeriesRingElem, Rx) where {T}
    R = base_ring(Rx)
    new_coefficients = elem_type(R)[let c = coeff(p, i)
                                      iszero(c) ? zero(R) : R(g(c))

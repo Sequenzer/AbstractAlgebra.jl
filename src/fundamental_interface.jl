@@ -98,6 +98,11 @@ Union{}
 ```
 """
 function base_ring end
+base_ring(x::ModuleElem) = base_ring(parent(x))
+base_ring(x::NCRingElement) = base_ring(parent(x))
+
+# generic coefficient_ring method
+coefficient_ring(x::NCRingElement) = coefficient_ring(parent(x))
 
 ###############################################################################
 #
@@ -121,7 +126,7 @@ julia> one(S)
 [1   .]
 [.   1]
 
-julia> R, x = PuiseuxSeriesField(QQ, 4, "x")
+julia> R, x = puiseux_series_field(QQ, 4, "x")
 (Puiseux series field in x over rationals, x + O(x^5))
 
 julia> one(x)
@@ -185,7 +190,7 @@ false
 julia> isone(U([1 0; 0 1; 0 0]))
 false
 
-julia> T, x = PuiseuxSeriesField(QQ, 10, "x")
+julia> T, x = puiseux_series_field(QQ, 10, "x")
 (Puiseux series field in x over rationals, x + O(x^11))
 
 julia> isone(x), isone(T(1))
@@ -201,7 +206,7 @@ Return true if $a$ is the additative identity, else return false.
 
 # Examples
 ```jldoctest; setup = :(using AbstractAlgebra)
-julia> T, x = PuiseuxSeriesField(QQ, 10, "x")
+julia> T, x = puiseux_series_field(QQ, 10, "x")
 (Puiseux series field in x over rationals, x + O(x^11))
 
 julia> a = T(0)
@@ -226,7 +231,7 @@ function iszero end
 
 # # Examples
 # ```jldoctest; setup = :(using AbstractAlgebra)
-# julia> S, x = LaurentPolynomialRing(QQ, "x")
+# julia> S, x = laurent_polynomial_ring(QQ, "x")
 # (Univariate Laurent Polynomial Ring in x over Rationals, x)
 
 # julia> gen(S)
@@ -252,6 +257,11 @@ function gens end
 #
 ###############################################################################
 
+"""
+    const VarName = Union{Symbol, AbstractString, Char}
+
+Types allowed when giving variable names.
+"""
 const VarName = Union{Symbol, AbstractString, Char}
 
 ###############################################################################

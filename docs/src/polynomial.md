@@ -48,8 +48,8 @@ can accept any AbstractAlgebra polynomial type.
 In order to construct polynomials in AbstractAlgebra.jl, one must first construct the
 polynomial ring itself. This is accomplished with the following constructor.
 
-```@docs
-polynomial_ring(R::Ring, s::VarName; cached::Bool = true)
+```@docs; canonical=false
+polynomial_ring(R::NCRing, s::VarName; cached::Bool = true)
 ```
 
 A shorthand version of this function is provided: given a base ring `R`, we abbreviate
@@ -298,8 +298,7 @@ gcdinv(f::PolyRingElem, g::PolyRingElem)
 julia> R, x = polynomial_ring(QQ, "x")
 (Univariate polynomial ring in x over rationals, x)
 
-julia> S = residue_ring(R, x^3 + 3x + 1)
-Residue ring of univariate polynomial ring modulo x^3 + 3*x + 1
+julia> S, = residue_ring(R, x^3 + 3x + 1);
 
 julia> T, y = polynomial_ring(S, "y")
 (Univariate polynomial ring in y over residue ring, y)
@@ -464,8 +463,7 @@ julia> S, y = polynomial_ring(R, "y")
 julia> T, z = polynomial_ring(QQ, "z")
 (Univariate polynomial ring in z over rationals, z)
 
-julia> U = residue_ring(ZZ, 17)
-Residue ring of integers modulo 17
+julia> U, = residue_ring(ZZ, 17);
 
 julia> V, w = polynomial_ring(U, "w")
 (Univariate polynomial ring in w over residue ring, w)
@@ -781,8 +779,7 @@ p = primpart(k*(x^2 + 1))
 ### Evaluation, composition and substitution
 
 ```@docs
-evaluate{T <: RingElem}(::PolyRingElem{T}, ::T)
-evaluate(::PolyRingElem, ::Integer)
+evaluate(::PolyRingElem, b::T) where T <: RingElement
 ```
 
 ```@docs
@@ -860,8 +857,7 @@ julia> S, y = polynomial_ring(R, "y")
 julia> T, z = polynomial_ring(QQ, "z")
 (Univariate polynomial ring in z over rationals, z)
 
-julia> U = residue_ring(T, z^3 + 3z + 1)
-Residue ring of univariate polynomial ring modulo z^3 + 3*z + 1
+julia> U, = residue_ring(T, z^3 + 3z + 1);
 
 julia> V, w = polynomial_ring(U, "w")
 (Univariate polynomial ring in w over residue ring, w)

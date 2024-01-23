@@ -4,8 +4,6 @@
 #
 ################################################################################
 
-include("julia/GF.jl")
-
 is_domain_type(::Type{T}) where {T <: FieldElem} = true
 
 is_zero_divisor(a::T) where T <: FieldElem = is_zero(a)
@@ -37,8 +35,6 @@ function gcdx(x::T, y::T) where {T <: FieldElem}
       return one(R), inv(x), zero(R)
    end
 end
-
-characteristic(R::Field) = 0
 
 function factor(x::FieldElem)
   is_zero(x) && throw(ArgumentError("Element must be non-zero"))

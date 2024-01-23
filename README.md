@@ -2,13 +2,14 @@
 
 [![Docs](https://img.shields.io/badge/docs-dev-blue.svg)](https://nemocas.github.io/AbstractAlgebra.jl/dev)
 [![Docs](https://img.shields.io/badge/docs-stable-blue.svg)](https://nemocas.github.io/AbstractAlgebra.jl/stable)
-[![Build Status](https://github.com/Nemocas/AbstractAlgebra.jl/workflows/Run%20tests/badge.svg)](https://github.com/Nemocas/AbstractAlgebra.jl/actions?query=workflow%3A%22Run%20tests%22+branch%3Amaster)
+[![Run tests](https://github.com/Nemocas/AbstractAlgebra.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/Nemocas/AbstractAlgebra.jl/actions/workflows/CI.yml)
 [![Codecov](https://codecov.io/github/Nemocas/AbstractAlgebra.jl/coverage.svg?branch=master&token=)](https://codecov.io/gh/Nemocas/AbstractAlgebra.jl)
 
 AbstractAlgebra is a pure Julia package for computational abstract algebra. It grew out of the Nemo project and provides all of the abstract types and generic implementations that Nemo relies on.
 
-It is currently developed by William Hart, Tommy Hofmann, Fredrik Johansson,
-Claus Fieker with contributions from others.
+It was originally developed by William Hart, Tommy Hofmann, Fredrik Johansson and
+Claus Fieker with contributions from others. Current maintainers are Claus Fieker,
+Tommy Hofmann and Max Horn.
 
 AbstractAlgebra currently provides:
 

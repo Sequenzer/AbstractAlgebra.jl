@@ -10,10 +10,6 @@
 #
 ###############################################################################
 
-base_ring(a::FreeAssAlgElem{T}) where T <: RingElement = base_ring(parent(a))
-
-coefficient_ring(a::FreeAssAlgElem{T}) where T <: RingElement = base_ring(a)
-
 coefficient_ring(R::FreeAssAlgebra{T}) where T <: RingElement = base_ring(R)
 
 function is_domain_type(::Type{S}) where {T <: RingElement, S <: FreeAssAlgElem{T}}
@@ -70,7 +66,7 @@ function show(io::IO, ::MIME"text/plain", a::FreeAssAlgebra)
   print(io, " on ", ItemQuantity(nvars(a), "indeterminate"), " ")
   if n > max_vars
     join(io, symbols(a)[1:max_vars - 1], ", ")
-    println(io, "..., ", symbols(a)[n])
+    println(io, ", ..., ", symbols(a)[n])
   else
     join(io, symbols(a), ", ")
     println(io)
@@ -255,47 +251,3 @@ end
 function rand(S::FreeAssAlgebra, term_range, exp_bound, v...)
    rand(GLOBAL_RNG, S, term_range, exp_bound, v...)
 end
-
-###############################################################################
-#
-#   free_associative_algebra constructor
-#
-###############################################################################
-
-function free_associative_algebra(
-   R::Ring,
-   s::AbstractVector{<:VarName};
-   cached::Bool = true)
-
-   S = [Symbol(v) for v in s]
-   return Generic.free_associative_algebra(R, S, cached=cached)
-end
-
-function free_associative_algebra(
-   R::Ring,
-   s::Vector{Symbol};
-   cached::Bool = true)
-
-   return Generic.free_associative_algebra(R, s, cached=cached)
-end
-
-function free_associative_algebra(
-   R::Ring,
-   n::Int,
-   s::VarName;
-   cached::Bool = false)
-
-   S = [Symbol(s, i) for i in 1:n]
-   return Generic.free_associative_algebra(R, S; cached=cached)
-end
-
-function free_associative_algebra(
-   R::Ring,
-   n::Int,
-   s::Symbol=:x;
-   cached::Bool = false)
-
-   S = [Symbol(s, i) for i in 1:n]
-   return Generic.free_associative_algebra(R, S; cached=cached)
-end
-

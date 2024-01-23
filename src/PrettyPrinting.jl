@@ -165,7 +165,7 @@ end
 #        Expr(:hcat, a, b)       => a b
 
 
-function expressify(@nospecialize(a); context = nothing)::String
+function expressify(@nospecialize(a); context = nothing)
    return sprint(print, a; context = context)::String
 end
 
@@ -667,7 +667,7 @@ function compare_op_string(mi::MIME, op)
    if op === :(==)
       return "="
    else
-      return string(op)
+      return string(op)::String
    end
 end
 
@@ -681,7 +681,7 @@ function compare_op_string(mi::MIME"text/latex", op)
    elseif op === :(!=)
       return "\\neq"
    else
-      return string(op)
+      return string(op)::String
    end
 end
 
@@ -1398,9 +1398,12 @@ function is_unicode_allowed()
 end
 
 function with_unicode(f::Function)
-  old_allow_unicode = allow_unicode(true);
-  f()
-  allow_unicode(old_allow_unicode);
+  old_allow_unicode = allow_unicode(true)
+  try
+    f()
+  finally
+    allow_unicode(old_allow_unicode)
+  end
 end
 
 ################################################################################

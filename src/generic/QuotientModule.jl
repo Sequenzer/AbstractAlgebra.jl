@@ -4,8 +4,6 @@
 #
 ###############################################################################
 
-export QuotientModule, QuotientModuleElem, quo
-
 ###############################################################################
 #
 #   Basic manipulation
@@ -22,7 +20,7 @@ base_ring(N::QuotientModule{T}) where T <: RingElement = N.base_ring
 
 base_ring(v::QuotientModuleElem{T}) where T <: RingElement = base_ring(v.parent)
 
-ngens(N::QuotientModule{T}) where T <: RingElement = length(N.gen_cols)
+number_of_generators(N::QuotientModule{T}) where T <: RingElement = length(N.gen_cols)
 
 gens(N::QuotientModule{T}) where T <: RingElement = elem_type(N)[gen(N, i) for i = 1:ngens(N)]
 
@@ -115,7 +113,7 @@ function reduce_mod_rels(v::AbstractAlgebra.MatElem{T}, vrels::Vector{<:Abstract
    t1 = R()
    for k = 1:length(vrels) # for each relation
       rel = vrels[k]
-      while iszero(rel[1, i])
+      while is_zero_entry(rel, 1, i)
          i += 1
       end
       q, v[1, start + i - 1] = divrem(v[1, start + i - 1], rel[1, i])
@@ -300,6 +298,7 @@ function quo(m::AbstractAlgebra.FPModule{T}, subm::AbstractAlgebra.FPModule{T}) 
    srels = dense_matrix_type(T)[_matrix(v) for v in gens(subm)]
    combined_rels = compute_combined_rels(m, srels)
    M = QuotientModule{T}(m, combined_rels)
+   R = base_ring(m)
    f = ModuleHomomorphism(m, M, matrix(R, ngens(m), 0, []))
    M.map = f
    return M, f   

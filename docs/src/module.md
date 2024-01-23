@@ -47,7 +47,7 @@ iszero(m::FPModuleElem{T}) where T <: RingElement
 Return `true` if the given module element is zero.
 
 ```julia
-ngens(M::FPModule{T}) where T <: RingElement
+number_of_generators(M::FPModule{T}) where T <: RingElement
 ```
 
 Return the number of generators of the module $M$ in its current representation.
@@ -77,7 +77,7 @@ relation is given as an AbstractAlgebra row matrix.
 julia> M = FreeModule(QQ, 2)
 Vector space of dimension 2 over rationals
 
-julia> n = ngens(M)
+julia> n = number_of_generators(M)
 2
 
 julia> G = gens(M)
@@ -226,10 +226,10 @@ julia> m2 = rand(M, -10:10)
 (4, 4, -7)
 
 julia> S, f = sub(M, [m1, m2])
-(Submodule over Integers with 2 generators and no relations, Hom: Submodule over Integers with 2 generators and no relations -> Free module of rank 3 over integers)
+(Submodule over Integers with 2 generators and no relations, Hom: submodule over Integers with 2 generators and no relations -> free module of rank 3 over integers)
 
 julia> I, g = image(f)
-(Submodule over Integers with 2 generators and no relations, Hom: Submodule over Integers with 2 generators and no relations -> Free module of rank 3 over integers)
+(Submodule over Integers with 2 generators and no relations, Hom: submodule over Integers with 2 generators and no relations -> free module of rank 3 over integers)
 
 julia> is_isomorphic(S, I)
 true
@@ -261,17 +261,15 @@ julia> m2 = rand(M, -10:10)
 (4, 4, -7)
 
 julia> S, f = sub(M, [m1, m2])
-(Submodule over Integers with 2 generators and no relations, Hom: Submodule over Integers with 2 generators and no relations -> Free module of rank 3 over integers)
+(Submodule over Integers with 2 generators and no relations, Hom: submodule over Integers with 2 generators and no relations -> free module of rank 3 over integers)
 
 julia> Q, g = quo(M, S)
 (Quotient module over Integers with 2 generators and relations:
-[16 -21], Hom: Free module of rank 3 over integers -> Quotient module over Integers with 2 generators and relations:
+[16 -21], Hom: free module of rank 3 over integers -> quotient module over Integers with 2 generators and relations:
 [16 -21])
 
 julia> I, f = snf(Q)
-(Invariant factor decomposed module over Integers with invariant factors BigInt[0], Module isomorphism with
-Domain: Invariant factor decomposed module over Integers with invariant factors BigInt[0]
-Codomain: Quotient module over Integers with 2 generators and relations:
+(Invariant factor decomposed module over Integers with invariant factors BigInt[0], Hom: invariant factor decomposed module over Integers with invariant factors BigInt[0] -> quotient module over Integers with 2 generators and relations:
 [16 -21])
 
 julia> invs = invariant_factors(Q)

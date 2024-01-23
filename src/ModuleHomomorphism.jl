@@ -10,7 +10,7 @@
 #
 ###############################################################################
 
-mat(f::Map(FPModuleHomomorphism)) = f.matrix
+matrix(f::Map(FPModuleHomomorphism)) = f.matrix
 
 ###############################################################################
 #
@@ -18,20 +18,13 @@ mat(f::Map(FPModuleHomomorphism)) = f.matrix
 #
 ###############################################################################
 
-function show(io::IO, ::MIME"text/plain", f::Map(FPModuleHomomorphism))
-   println(io, "Module homomorphism")
-   io = pretty(io)
-   print(io, Indent(), "from ", Lowercase(), domain(f))
-   println(io)
-   print(io, "to ", Lowercase(), codomain(f))
-end
-
 function show(io::IO, f::Map(FPModuleHomomorphism))
   if get(io, :supercompact, false)
-    println(io, "Module homomorphism")
+    print(io, "Module homomorphism")
   else
-    print(io, "Hom: ")
-    print(IOContext(io, :supercompact => true), domain(f), " -> ", codomain(f))
+    io = pretty(io)
+    print(io, "Hom: ", Lowercase(), domain(f))
+    print(io, " -> ", Lowercase(), codomain(f))
   end
 end
 
@@ -64,7 +57,7 @@ function kernel(f::Map(FPModuleHomomorphism))
    C = codomain(f)
    R = base_ring(D)
    crels = rels(C)
-   M = mat(f)
+   M = matrix(f)
    # put domain relations and M in a big matrix
    # swap rows so we can get upper triangular wrt original data
    nr = nrows(M) + length(crels)
@@ -135,7 +128,7 @@ function preimage(f::Map(FPModuleHomomorphism), v::FPModuleElem{T}) where
    C = codomain(f)
    R = base_ring(C)
    parent(v) !== C && error("Incompatible element")
-   M = mat(f)
+   M = matrix(f)
    trels = rels(C)
    # Put rows of M and target relations into a matrix
    q = length(trels)

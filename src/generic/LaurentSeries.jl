@@ -23,15 +23,15 @@ function O(a::LaurentSeriesElem{T}) where T <: RingElement
    return parent(a)(Vector{T}(undef, 0), 0, val, val, 1)
 end
 
-parent_type(::Type{T}) where {S <: RingElement, T <: LaurentSeriesRingElem{S}} = LaurentSeriesRing{S}
+parent_type(::Type{LaurentSeriesRingElem{T}}) where T <: RingElement = LaurentSeriesRing{T}
 
-parent_type(::Type{T}) where {S <: FieldElement, T <: LaurentSeriesFieldElem{S}} = LaurentSeriesField{S}
+parent_type(::Type{LaurentSeriesFieldElem{T}}) where T <: FieldElement = LaurentSeriesField{T}
 
 parent(a::LaurentSeriesElem) = a.parent
 
-elem_type(::Type{T}) where {S <: RingElement, T <: LaurentSeriesRing{S}} = LaurentSeriesRingElem{S}
+elem_type(::Type{LaurentSeriesRing{T}}) where T <: RingElement = LaurentSeriesRingElem{T}
 
-elem_type(::Type{T}) where {S <: FieldElement, T <: LaurentSeriesField{S}} = LaurentSeriesFieldElem{S}
+elem_type(::Type{LaurentSeriesField{T}}) where T <: FieldElement = LaurentSeriesFieldElem{T}
 
 base_ring_type(::Type{LaurentSeriesRing{T}}) where T <: RingElement = parent_type(T)
 
@@ -40,8 +40,6 @@ base_ring_type(::Type{LaurentSeriesField{T}}) where T <: FieldElement = parent_t
 base_ring(R::LaurentSeriesRing{T}) where T <: RingElement = R.base_ring::parent_type(T)
 
 base_ring(R::LaurentSeriesField{T}) where T <: FieldElement = R.base_ring::parent_type(T)
-
-base_ring(a::LaurentSeriesElem) = base_ring(parent(a))
 
 function is_domain_type(::Type{T}) where {S <: RingElement, T <: LaurentSeriesElem{S}}
    return is_domain_type(S)
@@ -544,21 +542,21 @@ end
 #
 ###############################################################################
 
-function _make_parent(g, p::LaurentSeriesElem, cached::Bool)
+function _make_parent(g::T, p::LaurentSeriesElem, cached::Bool) where T
    R = parent(g(zero(base_ring(p))))
    S = parent(p)
    sym = var(S)
    max_prec = max_precision(S)
-   return AbstractAlgebra.LaurentSeriesRing(R, max_prec, sym; cached=cached)[1]
+   return AbstractAlgebra.laurent_series_ring(R, max_prec, sym; cached=cached)[1]
 end
 
-function map_coefficients(g, p::LaurentSeriesElem{<:RingElement};
+function map_coefficients(g::T, p::LaurentSeriesElem{<:RingElement};
                     cached::Bool = true,
-                    parent::Ring = _make_parent(g, p, cached))
+		    parent::Ring = _make_parent(g, p, cached)) where {T}
    return _map(g, p, parent)
 end
 
-function _map(g, p::LaurentSeriesElem, Rx)
+function _map(g::T, p::LaurentSeriesElem, Rx) where T
    R = base_ring(Rx)
    new_coefficients = elem_type(R)[let c = polcoeff(p, i)
                                      iszero(c) ? zero(R) : R(g(c))
@@ -577,7 +575,7 @@ end
 ################################################################################
 
 function _change_laurent_series_ring(R, Rx, cached)
-   P, _ = AbstractAlgebra.LaurentSeriesRing(R, max_precision(Rx),
+   P, _ = AbstractAlgebra.laurent_series_ring(R, max_precision(Rx),
                                                var(Rx), cached = cached)
    return P
 end

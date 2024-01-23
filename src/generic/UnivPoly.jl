@@ -12,11 +12,7 @@
 
 base_ring(S::UniversalPolyRing) = S.base_ring
 
-base_ring(p::UnivPoly) = base_ring(parent(p))
-
 coefficient_ring(S::UniversalPolyRing) = base_ring(S)
-
-coefficient_ring(p::UnivPoly) = base_ring(p)
 
 function is_domain_type(::Type{T}) where {S <: RingElement, U <: MPolyRingElem{S}, T <: UnivPoly{S, U}}
    return is_domain_type(S)
@@ -38,7 +34,7 @@ function mpoly_ring(S::UniversalPolyRing{T, U}) where {T <: RingElement, U <: Ab
    return S.mpoly_ring::Generic.MPolyRing{T}
 end
 
-nvars(S::UniversalPolyRing) = length(S.S)
+number_of_variables(S::UniversalPolyRing) = length(S.S)
 
 symbols(S::UniversalPolyRing) = S.S
 
@@ -930,11 +926,11 @@ end
 #
 ################################################################################
 
-function map_coefficients(f, p::UnivPoly; cached::Bool=true, parent::UniversalPolyRing = _change_univ_poly_ring(parent(f(zero(base_ring(p)))), parent(p), cached))
+function map_coefficients(f::T, p::UnivPoly; cached::Bool=true, parent::UniversalPolyRing = _change_univ_poly_ring(parent(f(zero(base_ring(p)))), parent(p), cached)) where T
    return _map(f, p, parent)
 end
 
-function _map(g, p::UnivPoly, Rx)
+function _map(g::T, p::UnivPoly, Rx) where T
    cvzip = zip(coefficients(p), exponent_vectors(p))
    M = MPolyBuildCtx(Rx)
    for (c, v) in cvzip

@@ -14,8 +14,6 @@ base_ring_type(::Type{ResidueField{T}}) where T <: RingElement = parent_type(T)
 
 base_ring(S::ResidueField{T}) where {T <: RingElement} = S.base_ring::parent_type(T)
 
-base_ring(r::ResFieldElem) = base_ring(parent(r))
-
 parent(a::ResFieldElem) = a.parent
 
 is_domain_type(a::Type{T}) where T <: ResFieldElem = true
@@ -499,8 +497,8 @@ to the constructor with the same base ring $R$ and element $a$.
 function residue_field(R::Ring, a::RingElement; cached::Bool = true)
    iszero(a) && throw(DivideError())
    T = elem_type(R)
-
-   return Generic.ResidueField{T}(R(a), cached)
+   S = Generic.EuclideanRingResidueField{T}(R(a), cached)
+   return S, Generic.EuclideanRingResidueMap(R, S)
 end
 
 @doc raw"""
@@ -512,7 +510,6 @@ where the section is the lift of an element of the residue field back
 to the ring `R`.
 """
 function quo(::Type{Field}, R::Ring, a::RingElement; cached::Bool = true)
-   S = residue_field(R, a; cached=cached)
-   f = map_with_section_from_func(x->S(x), x->lift(x), R, S)
+   S, f = residue_field(R, a; cached = cached)
    return S, f
 end

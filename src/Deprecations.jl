@@ -21,3 +21,9 @@ end
 @deprecate factor(f::PolyRingElem, R::Field) factor(R, f)
 
 @deprecate roots(f::PolyRingElem, R::Field) roots(R, f)
+
+# deprecated in 0.32.x
+@deprecate mat(f::Map(FPModuleHomomorphism)) matrix(f::Map(FPModuleHomomorphism))
+
+# deprecated in 0.35.x
+Base.@deprecate_binding intersection intersect

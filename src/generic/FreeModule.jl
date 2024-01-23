@@ -16,8 +16,6 @@ base_ring_type(::Type{FreeModule{T}}) where T <: Union{RingElement, NCRingElem} 
 
 base_ring(M::FreeModule{T}) where T <: Union{RingElement, NCRingElem} = M.base_ring::parent_type(T)
 
-base_ring(v::FreeModuleElem{T}) where T <: Union{RingElement, NCRingElem} = base_ring(parent(v))
-
 elem_type(::Type{FreeModule{T}}) where T <: Union{RingElement, NCRingElem} = FreeModuleElem{T}
 
 parent(m::FreeModuleElem{T}) where T <: Union{RingElement, NCRingElem} = m.parent
@@ -45,7 +43,7 @@ Return the dimension of the given vector space.
 """
 dim(M::FreeModule{T}) where T <: FieldElement = M.rank
 
-ngens(M::FreeModule{T}) where T <: Union{RingElement, NCRingElem} = M.rank
+number_of_generators(M::FreeModule{T}) where T <: Union{RingElement, NCRingElem} = M.rank
 
 function gens(N::FreeModule{T}) where T <: Union{RingElement, NCRingElem}
    return [gen(N, i) for i = 1:ngens(N)]
